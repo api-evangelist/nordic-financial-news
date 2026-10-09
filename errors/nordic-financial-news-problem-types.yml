@@ -1,0 +1,50 @@
+generated: '2026-10-09'
+method: searched
+source: https://docs.nordicfinancialnews.com/guides/errors.md
+format: application/problem+json (RFC 9457)
+envelope:
+- type
+- title
+- status
+- detail
+problems:
+- status: 400
+  title: invalid-parameter
+  type: https://docs.nordicfinancialnews.com/problems/invalid-parameter
+  description: A query parameter is unusable; the parameter member names it.
+  remediation: https://docs.nordicfinancialnews.com/problems/invalid-parameter
+- status: 401
+  title: auth-invalid
+  type: https://docs.nordicfinancialnews.com/problems/auth-invalid
+  description: The request carries no usable API key.
+  remediation: https://docs.nordicfinancialnews.com/problems/auth-invalid
+- status: 403
+  title: auth-insufficient
+  type: https://docs.nordicfinancialnews.com/problems/auth-insufficient
+  description: A valid API key is not permitted to make the request (missing scope).
+  remediation: https://docs.nordicfinancialnews.com/problems/auth-insufficient
+- status: 403
+  title: plan-limit-exceeded
+  type: https://docs.nordicfinancialnews.com/problems/plan-limit-exceeded
+  description: The plan does not reach the requested content or feature.
+  remediation: https://docs.nordicfinancialnews.com/problems/plan-limit-exceeded
+- status: 404
+  title: not-found
+  type: https://docs.nordicfinancialnews.com/problems/not-found
+  description: A path or identifier does not resolve.
+  remediation: https://docs.nordicfinancialnews.com/problems/not-found
+- status: 429
+  title: rate-limit-exceeded
+  type: https://docs.nordicfinancialnews.com/problems/rate-limit-exceeded
+  description: The request exceeds a rate limit.
+  remediation: https://docs.nordicfinancialnews.com/problems/rate-limit-exceeded
+- status: 429
+  title: monthly-limit-exceeded
+  type: https://docs.nordicfinancialnews.com/problems/monthly-limit-exceeded
+  description: The account has used its monthly request allowance.
+  remediation: https://docs.nordicfinancialnews.com/problems/monthly-limit-exceeded
+- status: 503
+  title: semantic-unavailable
+  type: https://docs.nordicfinancialnews.com/problems/semantic-unavailable
+  description: A semantic search cannot be completed.
+  remediation: https://docs.nordicfinancialnews.com/problems/semantic-unavailable

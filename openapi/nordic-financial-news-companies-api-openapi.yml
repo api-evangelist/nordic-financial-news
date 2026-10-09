@@ -1,0 +1,1856 @@
+openapi: 3.2.0
+info:
+  title: Nordic Financial News Companies API
+  version: v1.0
+  contact:
+    name: API Support
+    email: hello@nordicfinancialnews.com
+  description: 'Operations tagged Companies across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://nordicfinancialnews.com
+  description: Production server
+tags:
+- name: Companies
+paths:
+  /api/v1/companies:
+    get:
+      summary: List Companies
+      tags:
+      - Companies
+      security:
+      - bearer_auth: []
+      description: Returns a paginated list of companies covered in Nordic financial news, ordered alphabetically by name. Use `q` for full-text search across company names, ranked by relevance, or add `mode=semantic` to match `q` by meaning instead.
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        description: Number of companies to return per page (default 25, max 100).
+        example: 25
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        description: Opaque pagination cursor returned as `pagination.next_cursor` from a previous response. Mutually exclusive with `q`.
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        description: 'Comma-separated list of fields to include in the response. Available fields: `id`, `name`, `slug`, `ticker`, `former_tickers`.'
+        example: id,name,ticker
+        schema:
+          type: string
+      - name: q
+        in: query
+        required: false
+        description: Full-text search query (2-200 characters). Searches company names and aliases. Results are ranked by relevance instead of alphabetical order. Mutually exclusive with `cursor`.
+        example: Volvo
+        schema:
+          type: string
+      - name: mode
+        in: query
+        required: false
+        description: 'Set to `semantic` to match `q` by meaning rather than by name/ticker text. The match runs over each company''s name, aliases, country, sector, industry and description, so it answers thematic questions a name match cannot ("defense contractors", "companies making battery cells").
+
+
+          Put geography in `market`, `domicile` or `country` rather than in `q`. A place name in `q` matches company names containing it ("Nordic ...", "Swedish ...") ahead of companies that actually do that thing.
+
+
+          Requires `q`, is mutually exclusive with `cursor`, and returns a single ranked page capped by `limit`; `company`, `ticker`, `country`, `market`, `domicile`, `exchange`, `sector`, `listed`, `watchlist` and `is_active` remain hard filters applied before the match, not after.
+
+
+          Each company gains a `distance` (raw cosine, lower is closer, rounded to 4dp). Compare it only within one response, never across responses: the scale is model-dependent. Ranking also blends in a small coverage bonus that `distance` does not reflect. A server-side relevance floor drops weak matches, so a page is frequently shorter than `limit` and can be empty. Raising `limit` does not recover floored rows.
+
+
+          The response `pagination` object carries `count` only. There is no `next_cursor`, since a distance ranking cannot be cursor-paginated, and the response is uncacheable (`Cache-Control: no-cache, no-store`, no `ETag`). If the query cannot be embedded the request returns `503` rather than silently falling back to name matching.'
+        example: semantic
+        schema:
+          type: string
+          enum:
+          - semantic
+      - name: company
+        in: query
+        required: false
+        description: Resolve specific company `id` values, comma-separated (maximum 25). This is the batch-resolve path for the `company_id` and `company_ids` values returned by the articles, stories, events and calendar endpoints. Look up a whole page of them in one request instead of one `GET /companies/{identifier}` per company. Every id must resolve, or the request is rejected with `400` naming the unknown ids. Results are returned in name order, not the order requested, so key off each row's `id`. Combined with `ticker`, the two filters intersect.
+        example: cmpny1234567,cmpny7654321
+        schema:
+          type: string
+      - name: ticker
+        in: query
+        required: false
+        description: Resolve specific stock tickers, comma-separated (maximum 25). Accepts the exchange-suffixed form (e.g. `VOLV-B.ST`) and resolves former tickers; matching is case-insensitive. Unlike `q` this is an exact filter, so it returns no near-matches and supports cursor pagination. Every ticker must resolve, or the request is rejected with `400` naming the unknown values. Combined with `company`, the two filters intersect. A ticker shared by more than one issuer resolves to every matching company, so a batch can return more rows than the number of tickers sent. `GET /companies/{identifier}` tie-breaks such a ticker to a single company, this filter does not.
+        example: VOLV-B,ERIC-B
+        schema:
+          type: string
+      - name: country
+        in: query
+        required: false
+        description: Legal domicile, ISO 3166-1 alpha-2 code (e.g. `SE`, `NO`, `DK`). Comma-separated for multiple (e.g. `SE,NO`). Case-insensitive. Synonym for `domicile` on this endpoint, kept for backward compatibility. If both `country` and `domicile` are sent, they intersect.
+        example: SE
+        schema:
+          type: string
+      - name: market
+        in: query
+        required: false
+        description: Filter to companies with an active equity listing in these countries' exchanges (ISO 3166-1 alpha-2, comma-separated, e.g. `SE,NO`). `SE` covers Nasdaq Stockholm, First North, Spotlight and NGM. Distinct from `country`/`domicile` (legal domicile). Includes foreign-domiciled but locally-listed issuers.
+        example: SE
+        schema:
+          type: string
+      - name: domicile
+        in: query
+        required: false
+        description: Filter to companies legally domiciled in these countries (ISO 3166-1 alpha-2, comma-separated). The canonical cross-surface name for what `country` already means on this endpoint; reaches unlisted companies and excludes foreign-domiciled but locally-listed issuers. Use `market` for market-coverage questions.
+        example: SE
+        schema:
+          type: string
+      - name: exchange
+        in: query
+        required: false
+        description: Filter by exchange MIC code, comma-separated for multiple (e.g. `XSTO`, `XOSL,XCSE`). Only companies with an active listing on the exchange match.
+        example: XSTO
+        schema:
+          type: string
+      - name: sector
+        in: query
+        required: false
+        description: Filter by industry sector (e.g. `Financials`, `Industrials`, `Information Technology`).
+        example: Financials
+        schema:
+          type: string
+      - name: listed
+        in: query
+        required: false
+        description: When `true`, only return companies with at least one active stock exchange listing.
+        example: 'true'
+        schema:
+          type: string
+      - name: watchlist
+        in: query
+        required: false
+        description: When `true`, only return companies in the authenticated user's watchlist. Requires `read:watchlist` scope.
+        example: 'true'
+        schema:
+          type: string
+      - name: is_active
+        in: query
+        required: false
+        description: Filter by active status. When `true`, only return active companies. When `false`, only return inactive companies.
+        example: 'true'
+        schema:
+          type: string
+      - name: If-None-Match
+        in: header
+        required: false
+        description: ETag value from a previous response. Returns `304 Not Modified` if data has not changed.
+        schema:
+          type: string
+      - name: If-Modified-Since
+        in: header
+        required: false
+        description: HTTP date from a previous `Last-Modified` header. Returns `304 Not Modified` if nothing has changed since.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Companies retrieved successfully
+          content:
+            application/json:
+              examples:
+                companies_list:
+                  value:
+                    companies:
+                    - id: comp_volvo123
+                      name: Volvo AB
+                      slug: volvo-ab
+                      ticker: VOLV-B
+                      is_active: true
+                      exchange:
+                        id: exch_xsto1234
+                        name: Nasdaq Stockholm
+                        mic_code: XSTO
+                    pagination:
+                      count: 1
+                      next_cursor: null
+              schema:
+                type: object
+                properties:
+                  companies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CompanySummary'
+                  pagination:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      next_cursor:
+                        type:
+                        - string
+                        - 'null'
+                required:
+                - companies
+        '304':
+          description: Not Modified
+        '400':
+          description: Invalid parameter
+          content:
+            application/json:
+              examples:
+                unknown_company_id:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/invalid-parameter
+                    title: Invalid parameter
+                    status: 400
+                    detail: 'Unknown company id(s): codoesnotexi9'
+                    instance: urn:request:a1b2c3
+                    parameter: company
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1Companies
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+  /api/v1/companies/{identifier}:
+    parameters:
+    - name: identifier
+      in: path
+      required: true
+      description: Company ID or ticker symbol. Accepts the exchange-suffixed form (e.g. `VOLV-B.ST`); former tickers resolve too. When a ticker is shared by more than one company, the company with a listing on a Nordic exchange is returned, then the one with an active listing, then the most recently listed. Use the company ID for an unambiguous lookup.
+      schema:
+        type: string
+    get:
+      summary: Get Company Details
+      tags:
+      - Companies
+      security:
+      - bearer_auth: []
+      description: Returns detailed information about a single company, including description, sector, relationships, and stock listings. Look up by company ID (e.g. `comp_apple123`) or ticker symbol (e.g. `AAPL`, `VOLV-B`). Lookup also accepts the full ticker including exchange suffix (e.g. `VOLV-B.ST`).
+      parameters:
+      - name: If-None-Match
+        in: header
+        required: false
+        description: ETag value from a previous response. Returns `304 Not Modified` if data has not changed.
+        schema:
+          type: string
+      - name: If-Modified-Since
+        in: header
+        required: false
+        description: HTTP date from a previous `Last-Modified` header. Returns `304 Not Modified` if nothing has changed since.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Company retrieved successfully
+          content:
+            application/json:
+              examples:
+                company_detail:
+                  value:
+                    company:
+                      id: w55fcw3pbg3p
+                      name: Volvo Car AB
+                      slug: volvo-car-ab
+                      ticker: VOLCAR-B
+                      is_active: true
+                      description: Volvo Car AB (publ.) designs, develops, manufactures, markets, assembles, and sells passenger cars in Sweden and internationally.
+                      sector: Consumer Discretionary
+                      website: https://www.volvocars.com/se
+                      country:
+                        id: o5kwz4bzzqkm
+                        name: Sweden
+                        iso2_code: SE
+                      article_count: 176
+                      story_count: 11
+                      parent_company:
+                        id: himhcsn81a3r
+                        name: Geely Holding
+                        ticker: null
+                      subsidiaries:
+                      - id: 6lv8cihz3948
+                        name: Polestar
+                        ticker: null
+                      indices: []
+                      stock_listings:
+                      - ticker: VOLCAR-B
+                        primary: true
+                        exchange:
+                          id: 64hn2d7ul6kr
+                          name: Nasdaq Stockholm
+                          mic_code: XSTO
+                      registry:
+                        source: Bolagsverket
+                        registered_name: Volvo Personvagnar Aktiebolag
+                        company_form: Aktiebolag
+                        city: GÖTEBORG
+                        founded: '1960-10-28'
+                        employees: null
+                        industry: Tillverkning av personbilar och andra lätta motorfordon
+                        bankruptcy: null
+                        under_liquidation: null
+                        share_capital: null
+                        institutional_sector: null
+                        deregistered_at: null
+                        deregistration_reason: null
+                      updated_at: '2026-03-28T11:22:22.697Z'
+              schema:
+                type: object
+                properties:
+                  company:
+                    $ref: '#/components/schemas/CompanyDetail'
+                required:
+                - company
+        '304':
+          description: Not Modified
+        '404':
+          description: Company not found
+          content:
+            application/json:
+              examples:
+                not_found:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/not-found
+                    title: Not Found
+                    status: 404
+                    detail: The requested resource could not be found
+                    instance: urn:request:abc123
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1CompaniesByIdentifier
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+  /api/v1/companies/{identifier}/articles:
+    parameters:
+    - name: identifier
+      in: path
+      required: true
+      description: Company ID or ticker symbol. Accepts the exchange-suffixed form (e.g. `VOLV-B.ST`); former tickers resolve too. When a ticker is shared by more than one company, the company with a listing on a Nordic exchange is returned, then the one with an active listing, then the most recently listed. Use the company ID for an unambiguous lookup.
+      schema:
+        type: string
+    get:
+      summary: List Company Articles
+      tags:
+      - Companies
+      security:
+      - bearer_auth: []
+      description: 'Returns articles where the company is a principal association (subject, partner, investor,
+
+        or competitor), ordered by publication date (newest first). An article where this company
+
+        is only the source, an advisor, or a passing mention is excluded.
+
+
+        ## Parameters
+
+        Accepts the same `q`, `sort`, `fields`, `updated_after`, `country`, `category`, `sources`, `source_type`, `content_type`, `published_after` and `published_before` parameters as `GET /api/v1/articles`, with identical semantics, scoped to this company. `primary_only=true` narrows further within that principal set, to only articles where this company is the primary subject.
+
+
+        ## Rejected parameters
+
+        `ticker`, `company`, `watchlist`, `listed`, `exchange`, `market`, `domicile`, `index` and `sector` are rejected (400). The path already fixes the company; use `GET /api/v1/articles` to filter the full collection by them (`watchlist=false` and `listed` with any value other than `true` are ignored, as on the flat resource).
+
+
+        ## Caching
+
+        Requests with `updated_after` are not cached: they return `Cache-Control: no-cache, no-store` and no `ETag`. The `ETag` reflects the response as served, not only record timestamps: it changes when plan limits alter the visible set, so a changed `ETag` does not necessarily mean a record was updated.'
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        description: Number of articles to return per page (default 25, max 100).
+        example: 25
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        description: Opaque pagination cursor from a previous response. Mutually exclusive with `q` unless `sort=latest` is also given.
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        description: 'Comma-separated list of fields to include in the response. Reduces payload size. Available fields: `id`, `title`, `article_url`, `published_at`, `updated_at`, `content_type`, `source`, `company_ids`, `country`, `category`.'
+        example: id,title,published_at
+        schema:
+          type: string
+      - name: updated_after
+        in: query
+        required: false
+        description: 'ISO 8601 datetime. Returns only this company''s articles updated after this timestamp. Use this for incremental sync: store the timestamp of your last completed sync, then request only newer results on each poll. Results are ordered by `updated_at` ascending and are cursor-paginated. Follow `pagination.next_cursor`, resending the same `updated_after` value, until it is null. Only advance your stored timestamp once you have drained every page. Mutually exclusive with `sort=latest` (with or without `q`). An `updated_after` walk is always ordered by `updated_at`.'
+        example: '2024-01-01T00:00:00Z'
+        schema:
+          type: string
+      - name: q
+        in: query
+        required: false
+        description: Full-text search query (2-200 characters). By default, results are ranked by relevance instead of publication date, as a single page with no cursor. Mutually exclusive with `cursor` unless `sort=latest` is also given. Disables caching.
+        example: Volvo earnings
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        description: Result order for `q`. `relevance` (default) is a single relevance-ranked page with no cursor; it requires `q`, and returns 400 without one. `latest` turns `q` into a match filter under the endpoint's normal newest-first order (`published_at` descending) and the response is cursor-paginated like any other request; without `q` it is an accepted no-op (that's already the default order). Mutually exclusive with `updated_after`.
+        example: latest
+        schema:
+          type: string
+          enum:
+          - relevance
+          - latest
+      - name: country
+        in: query
+        required: false
+        description: Filter by country using ISO 3166-1 alpha-2 code (e.g. `SE`, `NO`, `DK`). Comma-separated for multiple (e.g. `SE,NO`). Case-insensitive.
+        example: SE
+        schema:
+          type: string
+      - name: category
+        in: query
+        required: false
+        description: Filter by category `id` (from `GET /api/v1/categories`). Comma-separated for multiple (e.g. `cat_earnings1,cat_mna000001`); unknown ids are ignored.
+        example: cat_earnings1
+        schema:
+          type: string
+      - name: sources
+        in: query
+        required: false
+        description: Comma-separated list of source IDs (max 25). Use `GET /api/v1/sources` to discover source IDs. Also accepts array form (`sources[]=id1&sources[]=id2`). Disabled sources resolve to empty results.
+        example: abc123def456,ghi789jkl012
+        schema:
+          type: string
+      - name: source_type
+        in: query
+        required: false
+        description: 'Filter by source type, comma-separated. Valid values: `news_publication`, `wire_service`, `press_release`, `government`, `trade_publication`, `blog`, `stock_exchange`, `research`. Articles from disabled sources are excluded. An unrecognized value returns 400 naming the bad value(s).'
+        example: stock_exchange
+        schema:
+          type: string
+      - name: content_type
+        in: query
+        required: false
+        description: 'Filter by article content type, comma-separated. Valid values: `news`, `analysis`, `press_release`, `market_commentary`, `market_news`, `trading_halt`, `trading_event`, `other`. `GET /api/v1/meta` lists them as `content_types`. An unrecognized value returns 400 naming the bad value(s).'
+        example: news,analysis
+        schema:
+          type: string
+      - name: published_after
+        in: query
+        required: false
+        description: ISO 8601 datetime. Returns articles published on or after this timestamp.
+        example: '2024-06-01T00:00:00Z'
+        schema:
+          type: string
+      - name: published_before
+        in: query
+        required: false
+        description: ISO 8601 datetime. Returns articles published before this timestamp.
+        example: '2024-12-31T23:59:59Z'
+        schema:
+          type: string
+      - name: primary_only
+        in: query
+        required: false
+        description: When `true`, narrows further within the already-principal match, to only articles where this company is the primary subject.
+        schema:
+          type: boolean
+      - name: include_peripheral
+        in: query
+        required: false
+        description: When `true`, widen this feed back to articles where the company is only a peripheral association (its source, an advisor, or a passing mention), which are otherwise excluded. Default `false` (principal-only). `primary_only` still keeps the primary-subject restriction even when peripheral is requested.
+        schema:
+          type: boolean
+      - name: If-None-Match
+        in: header
+        required: false
+        description: ETag value from a previous response. Returns `304 Not Modified` if data has not changed.
+        schema:
+          type: string
+      - name: If-Modified-Since
+        in: header
+        required: false
+        description: HTTP date from a previous `Last-Modified` header. Returns `304 Not Modified` if nothing has changed since.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Company articles retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  articles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ArticleSummary'
+                  pagination:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      next_cursor:
+                        type:
+                        - string
+                        - 'null'
+                  plan_limited:
+                    type: boolean
+                    description: Present and `true` when your plan restricted what this endpoint can return, so the result may be incomplete. Absent when your plan applies no restriction.
+                    example: true
+                required:
+                - articles
+        '304':
+          description: Not Modified
+        '400':
+          description: Invalid parameter
+          content:
+            application/json:
+              examples:
+                company_scoped_param:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/invalid-parameter
+                    title: Invalid parameter
+                    status: 400
+                    detail: This endpoint is already scoped to a company by the path, so ticker cannot apply here. Use GET /api/v1/articles to filter the full collection by ticker.
+                    instance: urn:request:a1b2c3
+                    parameter: ticker
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1CompaniesByIdentifierArticles
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+  /api/v1/companies/{identifier}/stories:
+    parameters:
+    - name: identifier
+      in: path
+      required: true
+      description: Company ID or ticker symbol. Accepts the exchange-suffixed form (e.g. `VOLV-B.ST`); former tickers resolve too. When a ticker is shared by more than one company, the company with a listing on a Nordic exchange is returned, then the one with an active listing, then the most recently listed. Use the company ID for an unambiguous lookup.
+      schema:
+        type: string
+    get:
+      summary: List Company Stories
+      tags:
+      - Companies
+      security:
+      - bearer_auth: []
+      description: 'Returns stories that mention a specific company, ordered by publication date (newest first).
+
+
+        ## Parameters
+
+        Accepts the same `q`, `sort`, `fields`, `updated_after`, `country`, `category`, `sources`, `published_after` and `published_before` parameters as `GET /api/v1/stories`, with identical semantics, scoped to this company.
+
+
+        ## Rejected parameters
+
+        `ticker`, `company`, `watchlist`, `listed`, `exchange`, `market`, `domicile`, `index` and `sector` are rejected (400). The path already fixes the company; use `GET /api/v1/stories` to filter the full collection by them (`watchlist=false` and `listed` with any value other than `true` are ignored, as on the flat resource).
+
+
+        ## Caching
+
+        Requests with `updated_after` are not cached: they return `Cache-Control: no-cache, no-store` and no `ETag`. The `ETag` reflects the response as served, not only record timestamps: it changes when plan limits alter the visible set, and when a story''s visible article set changes, so a changed `ETag` does not necessarily mean a record was updated.'
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        description: Number of stories to return per page (default 25, max 100).
+        example: 25
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        description: Opaque pagination cursor from a previous response. Mutually exclusive with `q` unless `sort=latest` is also given.
+        schema:
+          type: string
+      - name: updated_after
+        in: query
+        required: false
+        description: 'ISO 8601 datetime. Returns only this company''s stories updated after this timestamp. Use this for incremental sync: store the timestamp of your last completed sync, then request only newer results on each poll. Results are ordered by `updated_at` ascending and are cursor-paginated. Follow `pagination.next_cursor`, resending the same `updated_after` value, until it is null. Only advance your stored timestamp once you have drained every page. Mutually exclusive with `sort=latest` (with or without `q`). An `updated_after` walk is always ordered by `updated_at`.'
+        example: '2024-01-01T00:00:00Z'
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        description: 'Comma-separated list of fields to include in the response. Available fields: `id`, `title`, `summary`, `published_at`, `updated_at`, `article_count`, `article_ids`, `country`, `category`, `company_ids`.'
+        example: id,title,summary,published_at
+        schema:
+          type: string
+      - name: q
+        in: query
+        required: false
+        description: Full-text search query (2-200 characters). By default, results are ranked by relevance instead of publication date, as a single page with no cursor. Mutually exclusive with `cursor` unless `sort=latest` is also given. Disables caching.
+        example: Volvo earnings
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        description: Result order for `q`. `relevance` (default) is a single relevance-ranked page with no cursor; it requires `q`, and returns 400 without one. `latest` turns `q` into a match filter under the endpoint's normal newest-first order (`published_at` descending) and the response is cursor-paginated like any other request; without `q` it is an accepted no-op (that's already the default order). Mutually exclusive with `updated_after`.
+        example: latest
+        schema:
+          type: string
+          enum:
+          - relevance
+          - latest
+      - name: country
+        in: query
+        required: false
+        description: Filter by country using ISO 3166-1 alpha-2 code (e.g. `SE`, `NO`, `DK`). Comma-separated for multiple (e.g. `SE,NO`). Case-insensitive.
+        example: SE
+        schema:
+          type: string
+      - name: category
+        in: query
+        required: false
+        description: Filter by category `id` (from `GET /api/v1/categories`). Comma-separated for multiple (e.g. `cat_earnings1,cat_mna000001`); unknown ids are ignored.
+        example: cat_earnings1
+        schema:
+          type: string
+      - name: sources
+        in: query
+        required: false
+        description: Comma-separated list of source IDs (max 25). Use `GET /api/v1/sources` to discover source IDs. Also accepts array form (`sources[]=id1&sources[]=id2`). Returns stories with at least one article from a listed source.
+        example: abc123def456,ghi789jkl012
+        schema:
+          type: string
+      - name: published_after
+        in: query
+        required: false
+        description: ISO 8601 datetime. Returns stories published on or after this timestamp.
+        example: '2024-06-01T00:00:00Z'
+        schema:
+          type: string
+      - name: published_before
+        in: query
+        required: false
+        description: ISO 8601 datetime. Returns stories published before this timestamp.
+        example: '2024-12-31T23:59:59Z'
+        schema:
+          type: string
+      - name: If-None-Match
+        in: header
+        required: false
+        description: ETag value from a previous response. Returns `304 Not Modified` if data has not changed.
+        schema:
+          type: string
+      - name: If-Modified-Since
+        in: header
+        required: false
+        description: HTTP date from a previous `Last-Modified` header. Returns `304 Not Modified` if nothing has changed since.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Company stories retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StorySummary'
+                  pagination:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      next_cursor:
+                        type:
+                        - string
+                        - 'null'
+                  plan_limited:
+                    type: boolean
+                    description: Present and `true` when your plan restricted what this endpoint can return, so the result may be incomplete. Absent when your plan applies no restriction.
+                    example: true
+                required:
+                - stories
+        '304':
+          description: Not Modified
+        '400':
+          description: Invalid parameter
+          content:
+            application/json:
+              examples:
+                company_scoped_param:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/invalid-parameter
+                    title: Invalid parameter
+                    status: 400
+                    detail: This endpoint is already scoped to a company by the path, so ticker cannot apply here. Use GET /api/v1/stories to filter the full collection by ticker.
+                    instance: urn:request:a1b2c3
+                    parameter: ticker
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1CompaniesByIdentifierStories
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+  /api/v1/companies/{identifier}/events:
+    parameters:
+    - name: identifier
+      in: path
+      required: true
+      description: Company ID or ticker symbol. Accepts the exchange-suffixed form (e.g. `VOLV-B.ST`); former tickers resolve too. When a ticker is shared by more than one company, the company with a listing on a Nordic exchange is returned, then the one with an active listing, then the most recently listed. Use the company ID for an unambiguous lookup.
+      schema:
+        type: string
+    get:
+      summary: List Company Events
+      tags:
+      - Companies
+      security:
+      - bearer_auth: []
+      description: 'Returns Events this company participates in, newest first. This is the same contract as `GET /api/v1/events`, scoped to a single company by the path. Plan gating, ordering, `updated_after` sync (including merge/removal tombstones for this company), and cursor semantics all match the flat resource; see its documentation for the full detail.
+
+
+        A tombstone respects the same event-grain filters as the flat resource, including `last_article_after`/`before`. A merged event''s `last_article_at` freezes at merge time, so those filter a tombstone against that frozen value rather than against when the merge happened. `window` cannot be used for sync polling (mutually exclusive with `updated_after`).
+
+
+        Parameters that name or describe a different company or listing are rejected here with `400 invalid-parameter`: `company`, `ticker`, `watchlist`, `listed`, `exchange`, `market`, `domicile`, `index` and `sector`. The path already fixes the company; use `GET /api/v1/events` to filter the full collection by any of them. `watchlist=false` and `listed` with any value other than `true` remain inert. `mode` is rejected with `400 invalid-parameter`; use `GET /api/v1/events?company={company_id}&q={query}&mode=semantic` to search one company''s events by meaning.
+
+
+        Responses carry an `ETag` and `Cache-Control: private, max-age=0, must-revalidate`; send the ETag back as `If-None-Match` to receive a `304 Not Modified`. There is no `Last-Modified`, so `If-Modified-Since` alone never revalidates. This is the same contract, and the same reason, as `GET /api/v1/events`. Requests carrying `q` or `updated_after` are not cached and return `Cache-Control: no-cache, no-store`.'
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        description: Number of events to return per page (default 25, max 100).
+        example: 25
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        description: Opaque pagination cursor from a previous response. Works with `q` too; `q` is a filter, not a separate search mode. When continuing an `updated_after` sync, resend the same `updated_after` value.
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        description: Comma-separated list of fields to include in the response. `id` is always included.
+        example: title,status,article_count
+        schema:
+          type: string
+      - name: updated_after
+        in: query
+        required: false
+        description: ISO 8601 datetime. Returns only this company's events updated after this timestamp, including merge/removal tombstones. Use for incremental sync.
+        example: '2026-03-01T00:00:00Z'
+        schema:
+          type: string
+      - name: q
+        in: query
+        required: false
+        description: Full-text filter over the event's own title and summary as well as its live member articles' indexed content (title, summary, key points, plus tagged company names and key facts), so an event can match on a company its coverage only tags. Matches stay in the default feed order (most recently reported first) and are cursor-paginated like any other request; combine with `window`/`last_article_after` for "latest on X".
+        example: earnings
+        schema:
+          type: string
+      - name: event_type
+        in: query
+        required: false
+        description: Filter by event type slug, comma-separated. These are Events taxonomy slugs (hyphenated) from `GET /api/v1/event_types` and are the only values accepted here. The underscored calendar `event_type` values used by `GET /api/v1/calendar_events` are rejected. A few spellings overlap across the two vocabularies (e.g. `delisting`) while denoting different things. An unrecognized slug returns 400 naming the bad slug(s).
+        example: earnings-report
+        schema:
+          type: string
+      - name: significance
+        in: query
+        required: false
+        description: 'Editorial importance, the feed''s materiality threshold, comma-separated (e.g. `notable,routine`). Valid values: `notable` (material, front-page-worthy events), `routine` (ledger records: routine filings, scheduled disclosures), `commentary` (opinion/analysis pieces). Use `significance=notable` to restrict the feed to material events. An unrecognized value returns 400 naming the bad value(s).'
+        example: notable
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        description: Sort order. `latest` (default) sorts most recently reported first, the unfiltered feed order. `significance` groups events into 3 coarse editorial tiers (`notable`, then `routine`, then `commentary`), most recently reported first within each tier; expect large ties within a tier. A mid-walk `routine`→`notable` escalation may be skipped, since the ordering is a best-effort snapshot. For a broad importance filter, prefer `significance=notable` with the default sort; page 1 is identical. Mutually exclusive with `updated_after` (an unrecognized value, or either sort value combined with `updated_after`, returns 400).
+        example: significance
+        schema:
+          type: string
+      - name: country
+        in: query
+        required: false
+        description: Filter to events with a live member article from this country (ISO 3166-1 alpha-2, comma-separated). Applied at the article grain, so sync tombstones do not respect it.
+        example: SE
+        schema:
+          type: string
+      - name: category
+        in: query
+        required: false
+        description: Filter to events with a live member article in any of these categories, by their `id` (comma-separated; unknown ids are ignored). Applied at the article grain, so sync tombstones do not respect it.
+        example: cat_earnings1
+        schema:
+          type: string
+      - name: sources
+        in: query
+        required: false
+        description: Filter to events with a live member article from these sources, by their `id` (comma-separated, max 25). Applied at the article grain, so sync tombstones do not respect it.
+        example: src123456789
+        schema:
+          type: string
+      - name: first_reported_after
+        in: query
+        required: false
+        description: ISO 8601 datetime. Only events first reported at or after this time.
+        example: '2026-01-01T00:00:00Z'
+        schema:
+          type: string
+      - name: first_reported_before
+        in: query
+        required: false
+        description: ISO 8601 datetime. Only events first reported before this time.
+        example: '2026-12-31T23:59:59Z'
+        schema:
+          type: string
+      - name: last_article_after
+        in: query
+        required: false
+        description: ISO 8601 datetime. Only events whose most recent activity (`last_article_at`, or `first_reported_at` when that is null) is at or after this time. Mutually exclusive with `window`.
+        example: '2026-03-01T00:00:00Z'
+        schema:
+          type: string
+      - name: last_article_before
+        in: query
+        required: false
+        description: ISO 8601 datetime. Only events whose most recent activity is before this time. Mutually exclusive with `window`.
+        example: '2026-03-02T00:00:00Z'
+        schema:
+          type: string
+      - name: window
+        in: query
+        required: false
+        description: Relative shorthand for `last_article_after`, e.g. `8h`, `24h`, `7d` (hours or days only, max 365d equivalent). Evaluated per request against the server clock. Mutually exclusive with `last_article_after`, `last_article_before`, and `updated_after`.
+        example: 24h
+        schema:
+          type: string
+      - name: source_type
+        in: query
+        required: false
+        description: 'Filter to events with a live member article from this source type, comma-separated. Valid values: `news_publication`, `wire_service`, `press_release`, `government`, `trade_publication`, `blog`, `stock_exchange`, `research`. Articles from disabled sources are excluded. Applied at the article grain, so sync tombstones do not respect it. An unrecognized value returns 400 naming the bad value(s).'
+        example: stock_exchange
+        schema:
+          type: string
+      - name: content_type
+        in: query
+        required: false
+        description: 'Filter to events with a live member article of this content type, comma-separated. Valid values: `news`, `analysis`, `press_release`, `market_commentary`, `market_news`, `trading_halt`, `trading_event`, `other`. Applied at the article grain, so sync tombstones do not respect it. An unrecognized value returns 400 naming the bad value(s). Content type is an AI-assigned label per article. To find events with a member article from a primary disclosure source, filter on `source_type` (`wire_service`, `stock_exchange`, `press_release`, `government`) instead.'
+        example: press_release
+        schema:
+          type: string
+      - name: related_to
+        in: query
+        required: false
+        description: Filter to commentary events that comment on or react to the factual event with this `id`. Unresolvable `id` returns an empty result set, not an error.
+        example: evtcorswg01
+        schema:
+          type: string
+      - name: include_peripheral
+        in: query
+        required: false
+        description: When `true`, widen this feed, and the `company_ids` returned on each event, to events where this company has a peripheral role (advisor, speaker, or a passing mention) as well. Default `false` restricts to an active-involvement role (subject, acquirer, target, investor, issuer, partner).
+        schema:
+          type: boolean
+      - name: If-None-Match
+        in: header
+        required: false
+        description: ETag value from a previous response. Returns `304 Not Modified` if data has not changed.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Company events retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - events
+                - pagination
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventSummary'
+                  pagination:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      next_cursor:
+                        type:
+                        - string
+                        - 'null'
+                  plan_limited:
+                    type: boolean
+                    description: Present and `true` when your plan capped what this endpoint can return. Absent when your plan applies no cap.
+                    example: true
+        '304':
+          description: Not Modified
+        '400':
+          description: Invalid parameter
+          content:
+            application/json:
+              examples:
+                company_scoped_mode:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/invalid-parameter
+                    title: Invalid parameter
+                    status: 400
+                    detail: mode is not supported on this endpoint. Use GET /api/v1/events?company={company_id}&q={query}&mode=semantic to search a single company's events by meaning.
+                    instance: urn:request:a1b2c3
+                    parameter: mode
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1CompaniesByIdentifierEvents
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+  /api/v1/companies/{identifier}/calendar_events:
+    parameters:
+    - name: identifier
+      in: path
+      required: true
+      description: Company ID or ticker symbol. Accepts the exchange-suffixed form (e.g. `VOLV-B.ST`); former tickers resolve too. When a ticker is shared by more than one company, the company with a listing on a Nordic exchange is returned, then the one with an active listing, then the most recently listed. Use the company ID for an unambiguous lookup.
+      schema:
+        type: string
+    get:
+      summary: List Company Calendar Events
+      tags:
+      - Companies
+      security:
+      - bearer_auth: []
+      description: 'Returns upcoming scheduled calendar events for a single company (earnings reports, AGMs/EGMs, dividends, and more), ordered by `scheduled_at` ascending. This is the same contract as `GET /api/v1/calendar_events`, scoped to a single company by the path.
+
+
+        ## Default window
+
+        By default only upcoming events are returned; `scheduled_after`/`scheduled_before` or `updated_after` lift that floor, the same way they do on the flat resource.
+
+
+        ## Plan availability
+
+        Not available on plans with a capped calendar. Use `GET /api/v1/calendar_events` for the upcoming-events preview instead.
+
+
+        ## Caching
+
+        Requests with `updated_after` are not cached: they return `Cache-Control: no-cache, no-store` and no `ETag`.'
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        description: Number of events to return per page (default 25, max 100).
+        example: 25
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        description: Opaque pagination cursor returned as `pagination.next_cursor` from a previous response. When continuing an `updated_after` sync, resend the same `updated_after` value alongside it.
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        description: 'Comma-separated list of fields to include in the response. Reduces payload size. `id` is always included. Available fields: `title`, `description`, `event_type`, `status`, `date_precision`, `fiscal_period`, `scheduled_at`, `timezone`, `local_time`, `scheduled_at_changed_at`, `source_article_id`, `source`, `company_id`, `company`, `country`, `dividend`, `updated_at`.'
+        example: title,event_type,scheduled_at,dividend
+        schema:
+          type: string
+      - name: updated_after
+        in: query
+        required: false
+        description: 'ISO 8601 datetime. Returns only this company''s events updated after this timestamp. Use for incremental sync: store the timestamp of your last completed sync and pass it on the next request. Results are ordered by `updated_at` ascending and cursor-paginated. Drain `pagination.next_cursor` before advancing your stored timestamp. Passing this parameter also disables the default upcoming-only floor, so past events with newer updates are included.'
+        example: '2026-03-01T00:00:00Z'
+        schema:
+          type: string
+      - name: status
+        in: query
+        required: false
+        description: 'Filter by lifecycle status. Omitted: returns `scheduled` + past `published` events and excludes `cancelled`. Pass `cancelled` to retrieve cancellations, or `scheduled`/`published` to narrow.'
+        example: cancelled
+        schema:
+          type: string
+          enum:
+          - scheduled
+          - published
+          - cancelled
+      - name: event_type
+        in: query
+        required: false
+        description: 'Filter by calendar event type. Accepts a single value or a comma-separated list for multiple types. These are calendar event types (underscored) and are the only values accepted here. The hyphenated Events taxonomy slugs from `GET /api/v1/event_types` belong to `GET /api/v1/events` and are rejected. A few spellings overlap across the two vocabularies (e.g. `delisting`) while denoting different things: a calendar event is a dated, scheduled entry for one issuer; an Events slug classifies a narrative event that already happened.'
+        example: earnings_report,earnings_call
+        schema:
+          type: string
+          enum:
+          - earnings_report
+          - earnings_call
+          - agm
+          - egm
+          - dividend
+          - capital_markets_day
+          - trading_update
+          - conference_presentation
+          - ma_announcement
+          - ma_offer_deadline
+          - ma_completion
+          - listing
+          - delisting
+      - name: scheduled_after
+        in: query
+        required: false
+        description: 'Window start. A bare date (`YYYY-MM-DD`) means that calendar date in each issuer''s own timezone, inclusive: `scheduled_after=2026-10-01&scheduled_before=2026-10-31` is October in every issuer''s local calendar. An ISO 8601 datetime (`Z` or a UTC offset) means an exact UTC instant, at or after. Passing this parameter disables the default upcoming-only floor, allowing past events to be returned.'
+        example: '2026-10-01'
+        schema:
+          type: string
+      - name: scheduled_before
+        in: query
+        required: false
+        description: Window end. A bare date means that calendar date in each issuer's own timezone, inclusive. An ISO 8601 datetime means an exact UTC instant, exclusive (strictly before). Passing this parameter disables the default upcoming-only floor, allowing past events to be returned.
+        example: '2026-10-31'
+        schema:
+          type: string
+      - name: If-None-Match
+        in: header
+        required: false
+        description: ETag value from a previous response. Returns `304 Not Modified` if data has not changed.
+        schema:
+          type: string
+      - name: If-Modified-Since
+        in: header
+        required: false
+        description: HTTP date from a previous `Last-Modified` header. Returns `304 Not Modified` if nothing has changed since.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Company calendar events retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - calendar_events
+                - pagination
+                properties:
+                  calendar_events:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CalendarEventSummary'
+                  pagination:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      next_cursor:
+                        type:
+                        - string
+                        - 'null'
+        '304':
+          description: Not Modified
+        '403':
+          description: Company calendars are not available on this plan
+          content:
+            application/json:
+              examples:
+                plan_limit_forbidden:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/plan-limit-exceeded
+                    title: Company calendars not available on your plan
+                    status: 403
+                    detail: Per-company calendar events require a plan with full calendar access. Upgrade your account, or use /api/v1/calendar_events for the upcoming-events preview.
+                    instance: urn:request:abc123
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1CompaniesByIdentifierCalendarEvents
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+components:
+  schemas:
+    ArticleSummary:
+      type: object
+      required:
+      - id
+      - title
+      - published_at
+      - updated_at
+      - article_url
+      - content_type
+      - category
+      - source
+      - company_ids
+      - country
+      properties:
+        id:
+          type: string
+          description: Unique article identifier
+          example: art_abc123def
+        title:
+          type: string
+          description: Article title in English. Machine-translated when the source article is not in English.
+          example: Volvo Reports Record Q3 Earnings
+        article_url:
+          type: string
+          description: Link to the original article
+          example: https://di.se/articles/volvo-q3-2026
+        content_type:
+          type: string
+          description: Type of article content
+          example: news
+          enum:
+          - news
+          - analysis
+          - press_release
+          - market_commentary
+          - market_news
+          - trading_halt
+          - trading_event
+          - other
+        published_at:
+          type: string
+          format: date-time
+          description: When the article was published by its source (ISO 8601). This is editorial time, not the time the article reached this API. Use it to filter by when news happened, never to track what is new to you.
+          example: '2026-03-15T09:30:00.000Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: 'When this record last changed (ISO 8601). This is the clock incremental sync runs on. It only ever moves forward, unlike published_at. To sync: pass your last completed sync time as `updated_after`, drain every page via `pagination.next_cursor`, and only then advance your stored timestamp.'
+          example: '2026-03-15T09:35:00.000Z'
+        category:
+          type: object
+          description: Article category
+          properties:
+            id:
+              type: string
+              example: cat_earnings1
+            name:
+              type: string
+              example: Earnings & Financial Results
+        source:
+          type: object
+          description: The news source that published this article
+          properties:
+            id:
+              type: string
+              description: Unique source identifier
+              example: abc123def456
+            name:
+              type: string
+              example: Dagens Industri
+            domain:
+              type: string
+              example: di.se
+            source_type:
+              type: string
+              example: news_publication
+              enum:
+              - news_publication
+              - wire_service
+              - press_release
+              - government
+              - trade_publication
+              - blog
+              - stock_exchange
+              - research
+        company_ids:
+          type: array
+          items:
+            type: string
+          description: IDs of companies mentioned in the article
+          example:
+          - uejazctgchj4
+        country:
+          type:
+          - string
+          - 'null'
+          description: Country code (ISO 3166-1 alpha-2)
+          example: SE
+        event_id:
+          type:
+          - string
+          - 'null'
+          description: ID of the event this article belongs to. Null when the article has not been assigned to an event yet. An event that has since been merged or removed still answers `GET /events/{id}` with a tombstone rather than a 404.
+          example: 8fzq2rmtnk5c
+    problem_details:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      - detail
+      - instance
+      properties:
+        type:
+          type: string
+          description: URI that identifies the problem type
+        title:
+          type: string
+          description: Short human-readable summary
+        status:
+          type: integer
+          description: HTTP status code
+        detail:
+          type: string
+          description: Human-readable explanation
+        instance:
+          type: string
+          description: URI that identifies the specific occurrence
+    CompanyDetail:
+      allOf:
+      - $ref: '#/components/schemas/CompanySummary'
+      - type: object
+        properties:
+          description:
+            type:
+            - string
+            - 'null'
+            description: Company description
+            example: Volvo Car AB (publ.) designs, develops, manufactures, markets, assembles, and sells passenger cars in Sweden and internationally.
+          sector:
+            type:
+            - string
+            - 'null'
+            description: Industry sector
+            example: Consumer Discretionary
+          website:
+            type:
+            - string
+            - 'null'
+            description: Company website
+            example: https://www.volvocars.com/se
+          article_count:
+            type: integer
+            description: Number of articles mentioning this company
+            example: 176
+          story_count:
+            type: integer
+            description: Number of stories mentioning this company
+            example: 11
+          parent_company:
+            type:
+            - object
+            - 'null'
+            description: Parent company, if this is a subsidiary
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              ticker:
+                type:
+                - string
+                - 'null'
+          subsidiaries:
+            type: array
+            description: Subsidiary companies
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+                ticker:
+                  type:
+                  - string
+                  - 'null'
+          indices:
+            type: array
+            description: Stock index memberships (e.g. OMXS30)
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+                symbol:
+                  type: string
+          stock_listings:
+            type: array
+            description: All stock listings across exchanges
+            items:
+              type: object
+              properties:
+                ticker:
+                  type: string
+                  description: Full ticker including exchange suffix
+                primary:
+                  type: boolean
+                  description: Whether this is the primary listing
+                exchange:
+                  type:
+                  - object
+                  - 'null'
+                  properties:
+                    id:
+                      type: string
+                    name:
+                      type: string
+                    mic_code:
+                      type: string
+          country:
+            type:
+            - object
+            - 'null'
+            description: Country where the company is domiciled
+            properties:
+              id:
+                type: string
+                description: Country identifier
+              name:
+                type: string
+                description: Country name
+                example: Sweden
+              iso2_code:
+                type: string
+                description: ISO 3166-1 alpha-2 code
+                example: SE
+          registry:
+            type:
+            - object
+            - 'null'
+            description: Official company registry data from Nordic registries (e.g. Bolagsverket, PRH). Null if no registry data exists.
+            properties:
+              source:
+                type:
+                - string
+                - 'null'
+                description: Name of the official registry
+                example: Bolagsverket
+              registered_name:
+                type:
+                - string
+                - 'null'
+                description: Official registered company name
+                example: Volvo Personvagnar Aktiebolag
+              company_form:
+                type:
+                - string
+                - 'null'
+                description: Legal form of the company
+                example: Aktiebolag
+              city:
+                type:
+                - string
+                - 'null'
+                description: Registered city
+                example: GÖTEBORG
+              founded:
+                type:
+                - string
+                - 'null'
+                description: Founding or registration date
+                example: '1960-10-28'
+              employees:
+                type:
+                - integer
+                - 'null'
+                description: Number of employees
+                example: 43000
+              industry:
+                type:
+                - string
+                - 'null'
+                description: Industry classification from registry
+                example: Tillverkning av personbilar och andra lätta motorfordon
+              bankruptcy:
+                type:
+                - boolean
+                - 'null'
+                description: Whether the company is in bankruptcy proceedings
+              under_liquidation:
+                type:
+                - boolean
+                - 'null'
+                description: Whether the company is under liquidation
+              share_capital:
+                type:
+                - object
+                - 'null'
+                description: Registered share capital
+                properties:
+                  amount:
+                    type:
+                    - number
+                    - 'null'
+                    description: Share capital amount
+                    example: 50000000
+                  currency:
+                    type:
+                    - string
+                    - 'null'
+                    description: Currency code (ISO 4217)
+                    example: SEK
+              institutional_sector:
+                type:
+                - string
+                - 'null'
+                description: Institutional sector classification
+                example: Non-financial corporations
+              deregistered_at:
+                type:
+                - string
+                - 'null'
+                description: Date the company was deregistered, if applicable
+                example: '2023-01-15'
+              deregistration_reason:
+                type:
+                - string
+                - 'null'
+                description: Reason for deregistration
+                example: Merger
+          updated_at:
+            type: string
+            format: date-time
+            description: When the company was last updated (ISO 8601)
+    StorySummary:
+      type: object
+      required:
+      - id
+      - title
+      - summary
+      - article_count
+      - published_at
+      - updated_at
+      properties:
+        id:
+          type: string
+          description: Unique story identifier
+          example: story_volvo_q3
+        title:
+          type: string
+          description: Story title
+          example: Volvo Reports Record Q3 Results
+        summary:
+          type: string
+          description: Story summary
+          example: Volvo reported record third-quarter earnings, beating analyst expectations...
+        article_count:
+          type: integer
+          description: Number of articles in this story (matches the length of article_ids)
+          example: 4
+        published_at:
+          type: string
+          format: date-time
+          description: 'When the story''s newest source article was published (ISO 8601). This is editorial time, not the time the story reached this API: a story about older news carries an older date. Use it to filter by when news happened, never to track what is new to you.'
+          example: '2026-03-15T09:30:00.000Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: 'When this record last changed (ISO 8601). This is the clock incremental sync runs on. It only ever moves forward, unlike published_at. To sync: pass your last completed sync time as `updated_after`, drain every page via `pagination.next_cursor`, and only then advance your stored timestamp.'
+          example: '2026-03-15T09:35:00.000Z'
+        article_ids:
+          type: array
+          items:
+            type: string
+          description: IDs of articles in this story, most relevant first
+          example:
+          - art_abc123def
+          - art_def456ghi
+        country:
+          type:
+          - string
+          - 'null'
+          description: Country code (ISO 3166-1 alpha-2)
+          example: SE
+        company_ids:
+          type: array
+          items:
+            type: string
+          description: IDs of companies mentioned in this story
+          example:
+          - uejazctgchj4
+        category:
+          type: object
+          description: Story category
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+        event_id:
+          type:
+          - string
+          - 'null'
+          description: ID of the event this story was generated from. An event that has since been merged or removed still answers `GET /events/{id}` with a tombstone rather than a 404.
+          example: 8fzq2rmtnk5c
+    CalendarEventSummary:
+      type: object
+      required:
+      - id
+      - title
+      - event_type
+      - status
+      - scheduled_at
+      - company_id
+      properties:
+        id:
+          type: string
+          description: Unique calendar event identifier
+          example: cale_q3volvo1
+        title:
+          type: string
+          description: Event title as reported by the issuer or exchange
+          example: Q3 2026 Interim Report
+        description:
+          type:
+          - string
+          - 'null'
+          description: Optional long-form description
+          example: Publication of the interim report for Q3 2026 and earnings call at 10:00 CET.
+        event_type:
+          type: string
+          description: The kind of calendar event
+          enum:
+          - earnings_report
+          - earnings_call
+          - agm
+          - egm
+          - dividend
+          - capital_markets_day
+          - trading_update
+          - conference_presentation
+          - ma_announcement
+          - ma_offer_deadline
+          - ma_completion
+          - listing
+          - delisting
+          example: earnings_report
+        status:
+          type: string
+          description: Event lifecycle status. `scheduled` is upcoming; `published` means the event has occurred (events flip ~2 days after their date); `cancelled` means the issuer withdrew it. List endpoints return `scheduled` + `published` and exclude `cancelled` by default. Pass the `status` query parameter to filter (e.g. `status=cancelled`).
+          enum:
+          - scheduled
+          - published
+          - cancelled
+          example: scheduled
+        date_precision:
+          type: string
+          description: Granularity of `scheduled_at`. `exact` = timestamp known; `day` = date only; `month` = only the month is known. Consumers that need a date should still use `scheduled_at` (set to a representative point inside the window).
+          enum:
+          - exact
+          - day
+          - month
+          example: day
+        fiscal_period:
+          type:
+          - string
+          - 'null'
+          description: Fiscal period slug (required for report-type events, e.g. `q3_2026`, `fy_2025`). For a split fiscal year the year is the one in which the fiscal year ends (2025/26 → `fy_2026`).
+          example: q3_2026
+        scheduled_at:
+          type: string
+          format: date-time
+          description: 'Scheduled date/time in UTC (ISO 8601). For the local calendar date use `local_time` instead: a day-precision event is stored at local midnight, so its UTC instant falls on the previous day for ahead-of-UTC (Nordic) zones.'
+          example: '2026-10-22T05:00:00.000Z'
+        timezone:
+          type: string
+          description: The issuer's IANA timezone, used to interpret `scheduled_at`. Resolved from the source article, falling back to the company's country zone.
+          example: Europe/Stockholm
+        local_time:
+          type: string
+          format: date-time
+          description: '`scheduled_at` rendered in the issuer''s `timezone` (ISO 8601 with offset). Use this for the correct local date/time. Its date is right even for day-precision events.'
+          example: '2026-10-22T07:00:00.000+02:00'
+        scheduled_at_changed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When `scheduled_at` last changed. Useful for change-feed consumers tracking date moves.
+          example: '2026-03-15T10:00:00.000Z'
+        source_article_id:
+          type:
+          - string
+          - 'null'
+          description: 'ID of the article the event was extracted from. `null` when the article is not retrievable (not live, or removed), or when the event was first found on a company website. If a company website later supplied the date, this still names the original article, and `source` names the website. Best-effort: on the free plan it may reference an article your plan can''t fetch (premium source or outside the age window).'
+          example: art_xyz45678
+        source:
+          type:
+          - object
+          - 'null'
+          description: Who published the current date. `article` is a news article or company announcement. `company_website` is the issuer's own investor relations calendar. `null` when our editors set the date.
+          properties:
+            type:
+              type: string
+              enum:
+              - article
+              - company_website
+              example: article
+            name:
+              type:
+              - string
+              - 'null'
+              description: 'The publisher: the outlet that carried the article, or the issuer''s investor relations site. `null` when the article is no longer available.'
+              example: Cision
+            url:
+              type:
+              - string
+              - 'null'
+              description: The investor relations calendar page, for `company_website`. `null` for `article`.
+              example: null
+            article_id:
+              type:
+              - string
+              - 'null'
+              description: ID of the article, for `article`. Matches `source_article_id`. `null` when the article is no longer available, and for `company_website`.
+              example: art_xyz45678
+        company_id:
+          type: string
+          description: ID of the company this event relates to
+          example: w55fcw3pbg3p
+        company:
+          type:
+          - object
+          - 'null'
+          description: The issuer this event belongs to, inlined so a calendar can be rendered without a lookup per row. `id` is the same value as `company_id`. `null` only when the issuer is not published by this API.
+          properties:
+            id:
+              type: string
+              description: Unique company identifier
+              example: w55fcw3pbg3p
+            name:
+              type: string
+              description: Company name
+              example: Telefonaktiebolaget LM Ericsson
+            ticker:
+              type:
+              - string
+              - 'null'
+              description: Primary stock ticker. `null` for an unlisted issuer.
+              example: ERIC-B
+        country:
+          type:
+          - string
+          - 'null'
+          description: Country ISO 3166-1 alpha-2 code
+          example: SE
+        dividend:
+          type:
+          - object
+          - 'null'
+          description: Dividend lifecycle dates. `null` for non-dividend events. `scheduled_at` follows the priority ex-date > record-date > payment-date, whichever is explicitly stated.
+          properties:
+            ex_date:
+              type:
+              - string
+              - 'null'
+              description: 'Ex-dividend date (YYYY-MM-DD). The market-event anchor: share price drops on this day.'
+              example: '2026-04-25'
+            record_date:
+              type:
+              - string
+              - 'null'
+              description: Record date (YYYY-MM-DD). Holders of record on this date receive the dividend.
+              example: '2026-04-28'
+            payment_date:
+              type:
+              - string
+              - 'null'
+              description: Payment date (YYYY-MM-DD). When the cash is distributed to shareholders.
+              example: '2026-05-06'
+            declaration_date:
+              type:
+              - string
+              - 'null'
+              description: Declaration / announcement date (YYYY-MM-DD). Metadata only, never used as the calendar anchor.
+              example: '2026-03-20'
+            kind:
+              type: string
+              enum:
+              - ordinary
+              - special
+              description: Tranche type. `ordinary` for the recurring/regular dividend; `special` for an extra/bonus/one-off dividend. When an issuer proposes both for the same date, they are returned as two separate events.
+              example: ordinary
+        updated_at:
+          type: string
+          format: date-time
+          description: When the event was last updated (ISO 8601). Use with `updated_after` for polling
+          example: '2026-03-01T09:00:00.000Z'
+    CompanySummary:
+      type: object
+      required:
+      - id
+      - name
+      - slug
+      - former_tickers
+      - also_listed_on
+      properties:
+        id:
+          type: string
+          description: Unique company identifier
+          example: w55fcw3pbg3p
+        name:
+          type: string
+          description: Company name
+          example: Volvo Car AB
+        slug:
+          type: string
+          description: URL-friendly company name
+          example: VOLCAR-B
+        ticker:
+          type:
+          - string
+          - 'null'
+          description: Primary stock ticker (null if unlisted)
+          example: VOLCAR-B
+        former_tickers:
+          type: array
+          items:
+            type: string
+          description: Tickers the company was formerly listed under, from delisted or renamed listings, excluding any that are still a current ticker. Always present; empty when none. The ticker filter resolves former tickers as well as the current one, so a match on an old ticker still returns the company; this field tells you the ticker you searched by is historical.
+          example:
+          - VOLV
+        is_active:
+          type: boolean
+          description: Whether the company is currently active/operating
+          example: true
+        exchange:
+          type:
+          - object
+          - 'null'
+          description: Primary exchange where the company is listed
+          properties:
+            id:
+              type: string
+              description: Exchange identifier
+            name:
+              type: string
+              description: Exchange display name
+            mic_code:
+              type: string
+              description: ISO 10383 Market Identifier Code
+        also_listed_on:
+          type: array
+          description: 'The company''s other active listings, excluding the primary listing above: cross-listings on other exchanges and additional share classes (which may be on the same exchange). Always present; empty when the company is single-listed or unlisted. The row''s ticker/exchange fields are the primary listing only. Company detail stock_listings is the authoritative full set.'
+          items:
+            type: object
+            required:
+            - ticker
+            - mic_code
+            properties:
+              ticker:
+                type: string
+                description: Ticker on this secondary exchange
+                example: VOLCAR-B
+              mic_code:
+                type: string
+                description: ISO 10383 Market Identifier Code of this exchange
+                example: XSTO
+          example: []
+    EventSummary:
+      type: object
+      required:
+      - id
+      - status
+      - updated_at
+      description: 'An event: one real-world development, grouping the articles that report it. A `merged` or `removed` event (see `status`) returns only the minimal tombstone fields (`id`, `status`, `merged_into`, `updated_at`). Title, significance, event_type, counts, and every id array are omitted, never null-but-present, so a tombstone carries no content.'
+      properties:
+        id:
+          type: string
+          description: Unique event identifier
+          example: k3n8vdczq1mp
+        title:
+          type: string
+          description: Event title (omitted on a tombstone)
+          example: Volvo AB announces Q3 2026 results
+        status:
+          type: string
+          description: Lifecycle status. `active`/`closed` are live (closed = coverage window lapsed but the event stays visible and can reopen). `merged` = absorbed into another event (see `merged_into`); `removed` = withdrawn from the feed (no live articles remain, or it was found to be incorrect). `merged`/`removed` never appear in the default list and carry only the tombstone fields.
+          enum:
+          - active
+          - closed
+          - merged
+          - removed
+          example: active
+        significance:
+          type: string
+          description: Editorial importance (omitted on a tombstone). `notable` = front-page-worthy; `routine` = factual ledger record; `commentary` = single-article opinion/analysis.
+          enum:
+          - notable
+          - routine
+          - commentary
+          example: notable
+        event_type:
+          type:
+          - object
+          - 'null'
+          description: The kind of event (omitted on a tombstone)
+          properties:
+            slug:
+              type: string
+              example: earnings-report
+            label:
+              type: string
+              example: Earnings Report
+            category:
+              type: string
+              example: earnings
+        article_count:
+          type: integer
+          description: Number of live articles reporting this event (omitted on a tombstone). This is the total count. Your plan's age and source restrictions do not reduce it; use GET on the event to see which of them your plan can fetch.
+          example: 3
+        first_reported_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: 'When this event was first reported (ISO 8601, omitted on a tombstone): the earliest known publication time among this event''s member articles. Falls back to `last_article_at` for ordering when null. This is editorial time, not the time the record reached this API.'
+          example: '2026-10-22T05:00:00.000Z'
+        last_article_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Publication time of the newest article reporting this event (ISO 8601, omitted on a tombstone).
+          example: '2026-10-23T09:15:00.000Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: When this record last changed (ISO 8601). This is the clock incremental sync runs on. Pass your last completed sync time as `updated_after`, drain every page via `pagination.next_cursor`, and only then advance your stored timestamp.
+          example: '2026-10-23T09:20:00.000Z'
+        company_ids:
+          type: array
+          items:
+            type: string
+          description: IDs of companies associated with this event, verified and visible only (omitted on a tombstone). Restricted to companies with an active-involvement role (subject, acquirer, target, investor, issuer, partner) unless `include_peripheral=true`.
+          example:
+          - uejazctgchj4
+        story_ids:
+          type: array
+          items:
+            type: string
+          description: IDs of published stories generated from this event, if any (omitted on a tombstone)
+          example:
+          - 8fzq2rmtnk5c
+        merged_into:
+          type:
+          - string
+          - 'null'
+          description: ID of the surviving event this one was merged into. Present only when `status` is `merged`; null for every other status, including `removed` and on some older merged events.
+          example: v3xdq8fmz1kn
+        related_to:
+          type:
+          - string
+          - 'null'
+          description: 'Commentary-only metadata: the `id` of the factual event this commentary event comments on or reacts to, when the piece is about a specific factual event. Always null for non-commentary events, and often null for commentary events too (the piece may not be about a specific event). Filter with `related_to=<id>` to find commentary reacting to a given event.'
+          example: v3xdq8fmz1kn
+  securitySchemes:
+    bearer_auth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+      description: API Key authentication using Bearer token
+x-refined-from:
+- nordic-financial-news-openapi-original.yml
+- nordic-financial-news-openapi.yml

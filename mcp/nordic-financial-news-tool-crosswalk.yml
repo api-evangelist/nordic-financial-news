@@ -1,0 +1,120 @@
+generated: '2026-10-09'
+method: derived
+source: mcp/nordic-financial-news-mcp.yml + openapi/nordic-financial-news-openapi.yml
+note: The contract carries no operationIds, so rest[] names METHOD path. Live MCP
+  inputSchema is OAuth-gated; bound by documented tool parameters.
+surfaces:
+  openapi: openapi/nordic-financial-news-openapi.yml
+  mcp: https://nordicfinancialnews.com/mcp (gated)
+crosswalk:
+- tool: search_events
+  rest:
+  - GET /api/v1/events
+  binding: name+parameter semantics
+  confidence: high
+- tool: get_event
+  rest:
+  - GET /api/v1/events/{id}
+  binding: name+parameter semantics
+  confidence: high
+- tool: get_company_news
+  rest:
+  - GET /api/v1/companies/{identifier}/events
+  binding: name+parameter semantics
+  confidence: medium
+- tool: list_event_types
+  rest:
+  - GET /api/v1/event_types
+  binding: name+parameter semantics
+  confidence: high
+- tool: search_articles
+  rest:
+  - GET /api/v1/articles
+  binding: name+parameter semantics
+  confidence: high
+- tool: get_article
+  rest:
+  - GET /api/v1/articles/{id}
+  binding: name+parameter semantics
+  confidence: high
+- tool: search_stories
+  rest:
+  - GET /api/v1/stories
+  binding: name+parameter semantics
+  confidence: high
+- tool: get_story
+  rest:
+  - GET /api/v1/stories/{id}
+  binding: name+parameter semantics
+  confidence: high
+- tool: search_companies
+  rest:
+  - GET /api/v1/companies
+  binding: name+parameter semantics
+  confidence: high
+- tool: get_company
+  rest:
+  - GET /api/v1/companies/{identifier}
+  binding: name+parameter semantics
+  confidence: high
+- tool: search_calendar_events
+  rest:
+  - GET /api/v1/calendar_events
+  binding: name+parameter semantics
+  confidence: high
+- tool: get_calendar_event
+  rest:
+  - GET /api/v1/calendar_events/{id}
+  binding: name+parameter semantics
+  confidence: high
+- tool: list_countries
+  rest:
+  - GET /api/v1/countries
+  binding: name+parameter semantics
+  confidence: high
+- tool: list_categories
+  rest:
+  - GET /api/v1/categories
+  binding: name+parameter semantics
+  confidence: high
+- tool: list_exchanges
+  rest:
+  - GET /api/v1/exchanges
+  binding: name+parameter semantics
+  confidence: high
+- tool: list_stock_indices
+  rest:
+  - GET /api/v1/indices
+  binding: name+parameter semantics
+  confidence: high
+- tool: list_sources
+  rest:
+  - GET /api/v1/sources
+  binding: name+parameter semantics
+  confidence: high
+- tool: list_watchlist
+  rest:
+  - GET /api/v1/watchlists/{id}
+  binding: name+parameter semantics
+  confidence: medium
+- tool: list_watchlists
+  rest:
+  - GET /api/v1/watchlists
+  binding: name+parameter semantics
+  confidence: high
+rest_only:
+- GET /api/v1/search
+- GET /api/v1/meta
+- GET /api/v1/health
+- GET /api/v1/countries/{identifier}
+- GET /api/v1/exchanges/{identifier}
+- GET /api/v1/exchanges/{identifier}/companies
+- GET /api/v1/indices/{identifier}
+- GET /api/v1/indices/{identifier}/companies
+- GET /api/v1/companies/{identifier}/articles
+- GET /api/v1/companies/{identifier}/stories
+- GET /api/v1/companies/{identifier}/calendar_events
+coverage:
+  tools: 19
+  mapped: 19
+  rest_operations: 30

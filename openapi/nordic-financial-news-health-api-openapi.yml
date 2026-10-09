@@ -1,0 +1,49 @@
+openapi: 3.2.0
+info:
+  title: Nordic Financial News Health API
+  version: v1.0
+  contact:
+    name: API Support
+    email: hello@nordicfinancialnews.com
+  description: 'Operations tagged Health across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://nordicfinancialnews.com
+  description: Production server
+tags:
+- name: Health
+paths:
+  /api/v1/health:
+    get:
+      summary: Health check endpoint
+      tags:
+      - Health
+      description: Returns the health status of the API
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                    - ok
+                required:
+                - status
+      operationId: getApiV1Health
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+components:
+  securitySchemes:
+    bearer_auth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+      description: API Key authentication using Bearer token
+x-refined-from:
+- nordic-financial-news-openapi-original.yml
+- nordic-financial-news-openapi.yml

@@ -1,0 +1,85 @@
+generated: '2026-10-09'
+method: derived
+generator: derive-vocabulary.py
+source: openapi/nordic-financial-news-openapi.yml
+vocabulary:
+  name: Nordic Financial News Domain Vocabulary
+  description: 'Terms declared by Nordic Financial News''s own API contract: its resource groups, objects and enumerations, with the contract''s
+    definitions. Derived, not authored.'
+  version: '2026-10-09'
+  terms:
+  - term: problem_details
+    definition: 'Object declared by the contract with fields: type, title, status, detail, instance.'
+    tags:
+    - Object
+    source: openapi/nordic-financial-news-openapi.yml#/components/schemas/problem_details
+  - term: ArticleSummary
+    definition: 'Object declared by the contract with fields: id, title, article_url, content_type, published_at, updated_at, category, source,
+      company_ids, country, event_id.'
+    tags:
+    - Object
+    source: openapi/nordic-financial-news-openapi.yml#/components/schemas/ArticleSummary
+  - term: StorySummary
+    definition: 'Object declared by the contract with fields: id, title, summary, article_count, published_at, updated_at, article_ids, country,
+      company_ids, category, event_id.'
+    tags:
+    - Object
+    source: openapi/nordic-financial-news-openapi.yml#/components/schemas/StorySummary
+  - term: CategorySummary
+    definition: 'Object declared by the contract with fields: id, name.'
+    tags:
+    - Object
+    source: openapi/nordic-financial-news-openapi.yml#/components/schemas/CategorySummary
+  - term: EventTypeSummary
+    definition: 'Object declared by the contract with fields: id, slug, label, category, summary.'
+    tags:
+    - Object
+    source: openapi/nordic-financial-news-openapi.yml#/components/schemas/EventTypeSummary
+  - term: SourceSummary
+    definition: 'Object declared by the contract with fields: id, name, domain, country, source_type.'
+    tags:
+    - Object
+    source: openapi/nordic-financial-news-openapi.yml#/components/schemas/SourceSummary
+  - term: CompanySummary
+    definition: 'Object declared by the contract with fields: id, name, slug, ticker, former_tickers, is_active, exchange, also_listed_on.'
+    tags:
+    - Object
+    source: openapi/nordic-financial-news-openapi.yml#/components/schemas/CompanySummary
+  - term: CountrySummary
+    definition: 'Object declared by the contract with fields: id, name, iso2_code.'
+    tags:
+    - Object
+    source: openapi/nordic-financial-news-openapi.yml#/components/schemas/CountrySummary
+  - term: ExchangeSummary
+    definition: 'Object declared by the contract with fields: id, name, mic_code, acronym, country.'
+    tags:
+    - Object
+    source: openapi/nordic-financial-news-openapi.yml#/components/schemas/ExchangeSummary
+  - term: IndexSummary
+    definition: 'Object declared by the contract with fields: id, name, symbol, pan_nordic, exchange.'
+    tags:
+    - Object
+    source: openapi/nordic-financial-news-openapi.yml#/components/schemas/IndexSummary
+  - term: CalendarEventSummary
+    definition: 'Object declared by the contract with fields: id, title, description, event_type, status, date_precision, fiscal_period, scheduled_at,
+      timezone, local_time, scheduled_at_changed_at, source_article_id. (6 more)'
+    tags:
+    - Object
+    source: openapi/nordic-financial-news-openapi.yml#/components/schemas/CalendarEventSummary
+  - term: EventSummary
+    definition: 'An event: one real-world development, grouping the articles that report it. A `merged` or `removed` event (see `status`) returns
+      only the minimal tombstone fields (`id`, `status`, `merged_into`, `updated_at`). Title, significance, event_type, counts, and every id array
+      are omitted, never null-but-present, so a tombstone carries no content.'
+    tags:
+    - Object
+    source: openapi/nordic-financial-news-openapi.yml#/components/schemas/EventSummary
+  - term: WatchlistSummary
+    definition: 'Object declared by the contract with fields: id, name, position, company_count, created_at, updated_at.'
+    tags:
+    - Object
+    source: openapi/nordic-financial-news-openapi.yml#/components/schemas/WatchlistSummary
+  - term: SearchResult
+    definition: 'Object declared by the contract with fields: results, pagination.'
+    tags:
+    - Object
+    source: openapi/nordic-financial-news-openapi.yml#/components/schemas/SearchResult

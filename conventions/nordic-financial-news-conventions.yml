@@ -1,0 +1,47 @@
+generated: '2026-10-09'
+method: searched
+source: https://nordicfinancialnews.com/openapi/v1/openapi.yaml
+auth:
+  style: 'Authorization: Bearer <API key>'
+  see: authentication/nordic-financial-news-authentication.yml
+idempotency:
+  coverage: na
+  note: Every operation in the contract is GET; there is no write surface.
+reversibility:
+  status: na
+  note: 'Read-only API: no write surface to reverse.'
+dry_run_mode: na
+pagination:
+  style: cursor
+  params:
+  - cursor
+  - limit
+  response_fields:
+  - pagination.next_cursor
+  link_header: rel="next"
+  limit: default 25, max 100
+field_projection:
+  param: fields
+  docs: https://docs.nordicfinancialnews.com/guides/field-projection.md
+caching:
+  validators:
+  - ETag
+  - Last-Modified
+  request_headers:
+  - If-None-Match
+  - If-Modified-Since
+  note: 304 does not count against the monthly allowance.
+incremental_sync:
+  param: updated_after
+  docs: https://docs.nordicfinancialnews.com/guides/real-time-updates.md
+errors:
+  format: RFC 9457 problem+json
+  see: errors/nordic-financial-news-problem-types.yml
+rate_limit_signaling:
+  headers:
+  - X-RateLimit-Limit
+  - X-RateLimit-Remaining
+  - X-RateLimit-Reset
+  - X-RateLimit-Policy
+  - Retry-After
+  see: rate-limits/nordic-financial-news-rate-limits.yml

@@ -1,0 +1,56 @@
+generated: '2026-10-09'
+method: searched
+source: https://docs.nordicfinancialnews.com/model-context-protocol/tools.md
+name: Nordic Financial News MCP server
+url: https://nordicfinancialnews.com/mcp
+deployment:
+  mode: remote
+  endpoint: https://nordicfinancialnews.com/mcp
+  auth: oauth
+  verified: probed
+  note: Docs state Streamable HTTP, OAuth 2.1 plus static Bearer API keys. Anonymous
+    POST returned 401 (pre-flight; control path 404).
+tools:
+- name: search_events
+  documented: true
+- name: get_event
+  documented: true
+- name: get_company_news
+  documented: true
+- name: list_event_types
+  documented: true
+- name: search_articles
+  documented: true
+- name: get_article
+  documented: true
+- name: search_stories
+  documented: true
+- name: get_story
+  documented: true
+- name: search_companies
+  documented: true
+- name: get_company
+  documented: true
+- name: search_calendar_events
+  documented: true
+- name: get_calendar_event
+  documented: true
+- name: list_countries
+  documented: true
+- name: list_categories
+  documented: true
+- name: list_exchanges
+  documented: true
+- name: list_stock_indices
+  documented: true
+- name: list_sources
+  documented: true
+- name: list_watchlist
+  documented: true
+- name: list_watchlists
+  documented: true
+tools_source: documented tool table; live tools/list not called (auth-gated)
+docs_mcp:
+  url: https://docs.nordicfinancialnews.com/mcp
+  note: Mintlify documentation-search MCP (search_nordic_financial_news), anonymous
+    tools/list 200; documentation only, not the data server.

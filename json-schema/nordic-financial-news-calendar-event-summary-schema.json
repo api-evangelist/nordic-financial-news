@@ -1,0 +1,230 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/nordic-financial-news/main/json-schema/nordic-financial-news-calendar-event-summary-schema.json",
+  "title": "CalendarEventSummary",
+  "x-generated": "2026-10-09",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/nordic-financial-news-openapi.yml#/components/schemas/CalendarEventSummary",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "event_type",
+    "status",
+    "scheduled_at",
+    "company_id"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique calendar event identifier"
+    },
+    "title": {
+      "type": "string",
+      "description": "Event title as reported by the issuer or exchange"
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Optional long-form description"
+    },
+    "event_type": {
+      "type": "string",
+      "description": "The kind of calendar event",
+      "enum": [
+        "earnings_report",
+        "earnings_call",
+        "agm",
+        "egm",
+        "dividend",
+        "capital_markets_day",
+        "trading_update",
+        "conference_presentation",
+        "ma_announcement",
+        "ma_offer_deadline",
+        "ma_completion",
+        "listing",
+        "delisting"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "description": "Event lifecycle status. `scheduled` is upcoming; `published` means the event has occurred (events flip ~2 days after their date); `cancelled` means the issuer withdrew it. List endpoints return `scheduled` + `published` and exclude `cancelled` by default. Pass the `status` query parameter to filter (e.g. `status=cancelled`).",
+      "enum": [
+        "scheduled",
+        "published",
+        "cancelled"
+      ]
+    },
+    "date_precision": {
+      "type": "string",
+      "description": "Granularity of `scheduled_at`. `exact` = timestamp known; `day` = date only; `month` = only the month is known. Consumers that need a date should still use `scheduled_at` (set to a representative point inside the window).",
+      "enum": [
+        "exact",
+        "day",
+        "month"
+      ]
+    },
+    "fiscal_period": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Fiscal period slug (required for report-type events, e.g. `q3_2026`, `fy_2025`). For a split fiscal year the year is the one in which the fiscal year ends (2025/26 → `fy_2026`)."
+    },
+    "scheduled_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Scheduled date/time in UTC (ISO 8601). For the local calendar date use `local_time` instead: a day-precision event is stored at local midnight, so its UTC instant falls on the previous day for ahead-of-UTC (Nordic) zones."
+    },
+    "timezone": {
+      "type": "string",
+      "description": "The issuer's IANA timezone, used to interpret `scheduled_at`. Resolved from the source article, falling back to the company's country zone."
+    },
+    "local_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "`scheduled_at` rendered in the issuer's `timezone` (ISO 8601 with offset). Use this for the correct local date/time. Its date is right even for day-precision events."
+    },
+    "scheduled_at_changed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "When `scheduled_at` last changed. Useful for change-feed consumers tracking date moves."
+    },
+    "source_article_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "ID of the article the event was extracted from. `null` when the article is not retrievable (not live, or removed), or when the event was first found on a company website. If a company website later supplied the date, this still names the original article, and `source` names the website. Best-effort: on the free plan it may reference an article your plan can't fetch (premium source or outside the age window)."
+    },
+    "source": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Who published the current date. `article` is a news article or company announcement. `company_website` is the issuer's own investor relations calendar. `null` when our editors set the date.",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "article",
+            "company_website"
+          ]
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The publisher: the outlet that carried the article, or the issuer's investor relations site. `null` when the article is no longer available."
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The investor relations calendar page, for `company_website`. `null` for `article`."
+        },
+        "article_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "ID of the article, for `article`. Matches `source_article_id`. `null` when the article is no longer available, and for `company_website`."
+        }
+      }
+    },
+    "company_id": {
+      "type": "string",
+      "description": "ID of the company this event relates to"
+    },
+    "company": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "The issuer this event belongs to, inlined so a calendar can be rendered without a lookup per row. `id` is the same value as `company_id`. `null` only when the issuer is not published by this API.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique company identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Company name"
+        },
+        "ticker": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Primary stock ticker. `null` for an unlisted issuer."
+        }
+      }
+    },
+    "country": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Country ISO 3166-1 alpha-2 code"
+    },
+    "dividend": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Dividend lifecycle dates. `null` for non-dividend events. `scheduled_at` follows the priority ex-date > record-date > payment-date, whichever is explicitly stated.",
+      "properties": {
+        "ex_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Ex-dividend date (YYYY-MM-DD). The market-event anchor: share price drops on this day."
+        },
+        "record_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Record date (YYYY-MM-DD). Holders of record on this date receive the dividend."
+        },
+        "payment_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Payment date (YYYY-MM-DD). When the cash is distributed to shareholders."
+        },
+        "declaration_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Declaration / announcement date (YYYY-MM-DD). Metadata only, never used as the calendar anchor."
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "ordinary",
+            "special"
+          ],
+          "description": "Tranche type. `ordinary` for the recurring/regular dividend; `special` for an extra/bonus/one-off dividend. When an issuer proposes both for the same date, they are returned as two separate events."
+        }
+      }
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the event was last updated (ISO 8601). Use with `updated_after` for polling"
+    }
+  }
+}

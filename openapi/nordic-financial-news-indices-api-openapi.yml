@@ -1,0 +1,420 @@
+openapi: 3.2.0
+info:
+  title: Nordic Financial News Indices API
+  version: v1.0
+  contact:
+    name: API Support
+    email: hello@nordicfinancialnews.com
+  description: 'Operations tagged Indices across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://nordicfinancialnews.com
+  description: Production server
+tags:
+- name: Indices
+paths:
+  /api/v1/indices:
+    get:
+      summary: List Indices
+      tags:
+      - Indices
+      security:
+      - bearer_auth: []
+      description: Returns stock indices, ordered alphabetically by name. Use `exchange` to filter by a specific exchange.
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        description: Number of indices to return per page (default 25, max 100).
+        example: 25
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        description: Opaque pagination cursor from a previous response.
+        schema:
+          type: string
+      - name: exchange
+        in: query
+        required: false
+        description: Filter by exchange MIC code, comma-separated for multiple (e.g. `XSTO`, `XSTO,XHEL`). Only active exchanges match.
+        example: XSTO
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        description: 'Comma-separated list of fields to include in the response. Available fields: `id`, `name`, `symbol`, `pan_nordic`, `exchange`.'
+        example: id,name,symbol
+        schema:
+          type: string
+      - name: If-None-Match
+        in: header
+        required: false
+        description: ETag value from a previous response. Returns `304 Not Modified` if data has not changed.
+        schema:
+          type: string
+      - name: If-Modified-Since
+        in: header
+        required: false
+        description: HTTP date from a previous `Last-Modified` header. Returns `304 Not Modified` if nothing has changed since.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Indices retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  indices:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/IndexSummary'
+                  pagination:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      next_cursor:
+                        type:
+                        - string
+                        - 'null'
+        '304':
+          description: Not Modified
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              examples:
+                unauthorized:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/auth-invalid
+                    title: Unauthorized
+                    status: 401
+                    detail: Missing or invalid API key
+                    instance: urn:request:abc123
+              schema:
+                $ref: '#/components/schemas/problem_details'
+        '403':
+          description: forbidden - insufficient scope
+          content:
+            application/json:
+              examples:
+                forbidden:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/auth-insufficient
+                    title: Forbidden
+                    status: 403
+                    detail: Insufficient scope for this resource
+                    instance: urn:request:abc123
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1Indices
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+  /api/v1/indices/{identifier}:
+    parameters:
+    - name: identifier
+      in: path
+      required: true
+      description: Index ID or symbol (e.g. `OMXS30`)
+      schema:
+        type: string
+    get:
+      summary: Get Index Details
+      tags:
+      - Indices
+      security:
+      - bearer_auth: []
+      description: 'Returns details for a single index, including description and company count. Look up by index ID or symbol (case-insensitive, e.g. `OMXS30`). Note: `companies_count` reflects the number of distinct companies in the index, which may be less than the number of index constituents when a company has multiple share classes listed.'
+      parameters:
+      - name: If-None-Match
+        in: header
+        required: false
+        description: ETag value from a previous response. Returns `304 Not Modified` if data has not changed.
+        schema:
+          type: string
+      - name: If-Modified-Since
+        in: header
+        required: false
+        description: HTTP date from a previous `Last-Modified` header. Returns `304 Not Modified` if nothing has changed since.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Index retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  index:
+                    $ref: '#/components/schemas/IndexDetail'
+                required:
+                - index
+        '304':
+          description: Not Modified
+        '404':
+          description: Stock index not found
+          content:
+            application/json:
+              examples:
+                not_found:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/not-found
+                    title: Not Found
+                    status: 404
+                    detail: The requested resource could not be found
+                    instance: urn:request:abc123
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1IndicesByIdentifier
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+  /api/v1/indices/{identifier}/companies:
+    parameters:
+    - name: identifier
+      in: path
+      required: true
+      description: Index ID or symbol (e.g. `OMXS30`)
+      schema:
+        type: string
+    get:
+      summary: List Index Companies
+      tags:
+      - Indices
+      security:
+      - bearer_auth: []
+      description: Returns companies that are members of a specific index, ordered alphabetically. The `ticker` and `exchange` shown for each company reflect its primary listing, which may differ from the listing used in this index (e.g. a company listed on multiple exchanges).
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        description: Number of companies to return per page (default 25, max 100).
+        example: 25
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        description: Opaque pagination cursor from a previous response.
+        schema:
+          type: string
+      - name: If-None-Match
+        in: header
+        required: false
+        description: ETag value from a previous response. Returns `304 Not Modified` if data has not changed.
+        schema:
+          type: string
+      - name: If-Modified-Since
+        in: header
+        required: false
+        description: HTTP date from a previous `Last-Modified` header. Returns `304 Not Modified` if nothing has changed since.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Index companies retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  companies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CompanySummary'
+                  pagination:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      next_cursor:
+                        type:
+                        - string
+                        - 'null'
+                required:
+                - companies
+        '304':
+          description: Not Modified
+        '404':
+          description: Stock index not found
+          content:
+            application/json:
+              examples:
+                not_found:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/not-found
+                    title: Not Found
+                    status: 404
+                    detail: The requested resource could not be found
+                    instance: urn:request:abc123
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1IndicesByIdentifierCompanies
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+components:
+  schemas:
+    IndexSummary:
+      type: object
+      required:
+      - id
+      - name
+      - symbol
+      properties:
+        id:
+          type: string
+          description: Unique stock index identifier
+          example: idx_omxs30abc
+        name:
+          type: string
+          description: Index display name
+          example: OMX Stockholm 30
+        symbol:
+          type: string
+          description: Index symbol
+          example: OMXS30
+        pan_nordic:
+          type: boolean
+          description: True if the index spans multiple Nordic exchanges (e.g. OMXN40), false if tied to a single exchange (e.g. OMXS30)
+          example: false
+        exchange:
+          type:
+          - object
+          - 'null'
+          description: Exchange associated with this index
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            mic_code:
+              type: string
+    CompanySummary:
+      type: object
+      required:
+      - id
+      - name
+      - slug
+      - former_tickers
+      - also_listed_on
+      properties:
+        id:
+          type: string
+          description: Unique company identifier
+          example: w55fcw3pbg3p
+        name:
+          type: string
+          description: Company name
+          example: Volvo Car AB
+        slug:
+          type: string
+          description: URL-friendly company name
+          example: VOLCAR-B
+        ticker:
+          type:
+          - string
+          - 'null'
+          description: Primary stock ticker (null if unlisted)
+          example: VOLCAR-B
+        former_tickers:
+          type: array
+          items:
+            type: string
+          description: Tickers the company was formerly listed under, from delisted or renamed listings, excluding any that are still a current ticker. Always present; empty when none. The ticker filter resolves former tickers as well as the current one, so a match on an old ticker still returns the company; this field tells you the ticker you searched by is historical.
+          example:
+          - VOLV
+        is_active:
+          type: boolean
+          description: Whether the company is currently active/operating
+          example: true
+        exchange:
+          type:
+          - object
+          - 'null'
+          description: Primary exchange where the company is listed
+          properties:
+            id:
+              type: string
+              description: Exchange identifier
+            name:
+              type: string
+              description: Exchange display name
+            mic_code:
+              type: string
+              description: ISO 10383 Market Identifier Code
+        also_listed_on:
+          type: array
+          description: 'The company''s other active listings, excluding the primary listing above: cross-listings on other exchanges and additional share classes (which may be on the same exchange). Always present; empty when the company is single-listed or unlisted. The row''s ticker/exchange fields are the primary listing only. Company detail stock_listings is the authoritative full set.'
+          items:
+            type: object
+            required:
+            - ticker
+            - mic_code
+            properties:
+              ticker:
+                type: string
+                description: Ticker on this secondary exchange
+                example: VOLCAR-B
+              mic_code:
+                type: string
+                description: ISO 10383 Market Identifier Code of this exchange
+                example: XSTO
+          example: []
+    problem_details:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      - detail
+      - instance
+      properties:
+        type:
+          type: string
+          description: URI that identifies the problem type
+        title:
+          type: string
+          description: Short human-readable summary
+        status:
+          type: integer
+          description: HTTP status code
+        detail:
+          type: string
+          description: Human-readable explanation
+        instance:
+          type: string
+          description: URI that identifies the specific occurrence
+    IndexDetail:
+      allOf:
+      - $ref: '#/components/schemas/IndexSummary'
+      - type: object
+        properties:
+          description:
+            type:
+            - string
+            - 'null'
+            description: Index description
+            example: The 30 most-traded stocks on Nasdaq Stockholm
+          companies_count:
+            type: integer
+            description: Number of distinct companies in this index (may be less than constituents when a company has multiple share classes)
+            example: 30
+  securitySchemes:
+    bearer_auth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+      description: API Key authentication using Bearer token
+x-refined-from:
+- nordic-financial-news-openapi-original.yml
+- nordic-financial-news-openapi.yml

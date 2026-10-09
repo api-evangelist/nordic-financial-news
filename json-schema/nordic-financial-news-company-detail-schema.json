@@ -1,0 +1,370 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/nordic-financial-news/main/json-schema/nordic-financial-news-company-detail-schema.json",
+  "title": "CompanyDetail",
+  "x-generated": "2026-10-09",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/nordic-financial-news-openapi.yml#/components/schemas/CompanyDetail",
+  "allOf": [
+    {
+      "$ref": "#/$defs/CompanySummary"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Company description"
+        },
+        "sector": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Industry sector"
+        },
+        "website": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Company website"
+        },
+        "article_count": {
+          "type": "integer",
+          "description": "Number of articles mentioning this company"
+        },
+        "story_count": {
+          "type": "integer",
+          "description": "Number of stories mentioning this company"
+        },
+        "parent_company": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "Parent company, if this is a subsidiary",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "ticker": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "subsidiaries": {
+          "type": "array",
+          "description": "Subsidiary companies",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "ticker": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "indices": {
+          "type": "array",
+          "description": "Stock index memberships (e.g. OMXS30)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "symbol": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "stock_listings": {
+          "type": "array",
+          "description": "All stock listings across exchanges",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ticker": {
+                "type": "string",
+                "description": "Full ticker including exchange suffix"
+              },
+              "primary": {
+                "type": "boolean",
+                "description": "Whether this is the primary listing"
+              },
+              "exchange": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "mic_code": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "country": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "Country where the company is domiciled",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Country identifier"
+            },
+            "name": {
+              "type": "string",
+              "description": "Country name"
+            },
+            "iso2_code": {
+              "type": "string",
+              "description": "ISO 3166-1 alpha-2 code"
+            }
+          }
+        },
+        "registry": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "Official company registry data from Nordic registries (e.g. Bolagsverket, PRH). Null if no registry data exists.",
+          "properties": {
+            "source": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Name of the official registry"
+            },
+            "registered_name": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Official registered company name"
+            },
+            "company_form": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Legal form of the company"
+            },
+            "city": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Registered city"
+            },
+            "founded": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Founding or registration date"
+            },
+            "employees": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "description": "Number of employees"
+            },
+            "industry": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Industry classification from registry"
+            },
+            "bankruptcy": {
+              "type": [
+                "boolean",
+                "null"
+              ],
+              "description": "Whether the company is in bankruptcy proceedings"
+            },
+            "under_liquidation": {
+              "type": [
+                "boolean",
+                "null"
+              ],
+              "description": "Whether the company is under liquidation"
+            },
+            "share_capital": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "description": "Registered share capital",
+              "properties": {
+                "amount": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "description": "Share capital amount"
+                },
+                "currency": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Currency code (ISO 4217)"
+                }
+              }
+            },
+            "institutional_sector": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Institutional sector classification"
+            },
+            "deregistered_at": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Date the company was deregistered, if applicable"
+            },
+            "deregistration_reason": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Reason for deregistration"
+            }
+          }
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the company was last updated (ISO 8601)"
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "CompanySummary": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "slug",
+        "former_tickers",
+        "also_listed_on"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique company identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Company name"
+        },
+        "slug": {
+          "type": "string",
+          "description": "URL-friendly company name"
+        },
+        "ticker": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Primary stock ticker (null if unlisted)"
+        },
+        "former_tickers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tickers the company was formerly listed under, from delisted or renamed listings, excluding any that are still a current ticker. Always present; empty when none. The ticker filter resolves former tickers as well as the current one, so a match on an old ticker still returns the company; this field tells you the ticker you searched by is historical."
+        },
+        "is_active": {
+          "type": "boolean",
+          "description": "Whether the company is currently active/operating"
+        },
+        "exchange": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "Primary exchange where the company is listed",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Exchange identifier"
+            },
+            "name": {
+              "type": "string",
+              "description": "Exchange display name"
+            },
+            "mic_code": {
+              "type": "string",
+              "description": "ISO 10383 Market Identifier Code"
+            }
+          }
+        },
+        "also_listed_on": {
+          "type": "array",
+          "description": "The company's other active listings, excluding the primary listing above: cross-listings on other exchanges and additional share classes (which may be on the same exchange). Always present; empty when the company is single-listed or unlisted. The row's ticker/exchange fields are the primary listing only. Company detail stock_listings is the authoritative full set.",
+          "items": {
+            "type": "object",
+            "required": [
+              "ticker",
+              "mic_code"
+            ],
+            "properties": {
+              "ticker": {
+                "type": "string",
+                "description": "Ticker on this secondary exchange"
+              },
+              "mic_code": {
+                "type": "string",
+                "description": "ISO 10383 Market Identifier Code of this exchange"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

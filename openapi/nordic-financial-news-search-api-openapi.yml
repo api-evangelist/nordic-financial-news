@@ -1,0 +1,524 @@
+openapi: 3.2.0
+info:
+  title: Nordic Financial News Search API
+  version: v1.0
+  contact:
+    name: API Support
+    email: hello@nordicfinancialnews.com
+  description: 'Operations tagged Search across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://nordicfinancialnews.com
+  description: Production server
+tags:
+- name: Search
+paths:
+  /api/v1/search:
+    get:
+      summary: Search
+      tags:
+      - Search
+      security:
+      - bearer_auth: []
+      description: Search across articles, stories, companies, countries, exchanges, and indices. Results are grouped by resource type and ranked by relevance. Use `type` to limit which resource types are searched.
+      parameters:
+      - name: q
+        in: query
+        required: true
+        description: Full-text search query (2-200 characters).
+        example: Volvo
+        schema:
+          type: string
+      - name: type
+        in: query
+        required: false
+        description: 'Comma-separated list of resource types to search. Defaults to all types. Valid values: `articles`, `stories`, `companies`, `countries`, `exchanges`, `indices`.'
+        example: articles,companies
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of results per resource type (default 5, max 25).
+        example: 5
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResult'
+        '400':
+          description: Invalid search query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/problem_details'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              examples:
+                unauthorized:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/auth-invalid
+                    title: Unauthorized
+                    status: 401
+                    detail: Missing or invalid API key
+                    instance: urn:request:abc123
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1Search
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+components:
+  schemas:
+    SearchResult:
+      type: object
+      required:
+      - results
+      - pagination
+      properties:
+        results:
+          type: object
+          properties:
+            articles:
+              type: array
+              items:
+                $ref: '#/components/schemas/ArticleSummary'
+            stories:
+              type: array
+              items:
+                $ref: '#/components/schemas/StorySummary'
+            companies:
+              type: array
+              items:
+                $ref: '#/components/schemas/CompanySummary'
+            countries:
+              type: array
+              items:
+                $ref: '#/components/schemas/CountrySummary'
+            exchanges:
+              type: array
+              items:
+                $ref: '#/components/schemas/ExchangeSummary'
+            indices:
+              type: array
+              items:
+                $ref: '#/components/schemas/IndexSummary'
+        pagination:
+          type: object
+          properties:
+            articles:
+              type: object
+              properties:
+                count:
+                  type: integer
+                limit:
+                  type: integer
+            stories:
+              type: object
+              properties:
+                count:
+                  type: integer
+                limit:
+                  type: integer
+            companies:
+              type: object
+              properties:
+                count:
+                  type: integer
+                limit:
+                  type: integer
+            countries:
+              type: object
+              properties:
+                count:
+                  type: integer
+                limit:
+                  type: integer
+            exchanges:
+              type: object
+              properties:
+                count:
+                  type: integer
+                limit:
+                  type: integer
+            indices:
+              type: object
+              properties:
+                count:
+                  type: integer
+                limit:
+                  type: integer
+    ArticleSummary:
+      type: object
+      required:
+      - id
+      - title
+      - published_at
+      - updated_at
+      - article_url
+      - content_type
+      - category
+      - source
+      - company_ids
+      - country
+      properties:
+        id:
+          type: string
+          description: Unique article identifier
+          example: art_abc123def
+        title:
+          type: string
+          description: Article title in English. Machine-translated when the source article is not in English.
+          example: Volvo Reports Record Q3 Earnings
+        article_url:
+          type: string
+          description: Link to the original article
+          example: https://di.se/articles/volvo-q3-2026
+        content_type:
+          type: string
+          description: Type of article content
+          example: news
+          enum:
+          - news
+          - analysis
+          - press_release
+          - market_commentary
+          - market_news
+          - trading_halt
+          - trading_event
+          - other
+        published_at:
+          type: string
+          format: date-time
+          description: When the article was published by its source (ISO 8601). This is editorial time, not the time the article reached this API. Use it to filter by when news happened, never to track what is new to you.
+          example: '2026-03-15T09:30:00.000Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: 'When this record last changed (ISO 8601). This is the clock incremental sync runs on. It only ever moves forward, unlike published_at. To sync: pass your last completed sync time as `updated_after`, drain every page via `pagination.next_cursor`, and only then advance your stored timestamp.'
+          example: '2026-03-15T09:35:00.000Z'
+        category:
+          type: object
+          description: Article category
+          properties:
+            id:
+              type: string
+              example: cat_earnings1
+            name:
+              type: string
+              example: Earnings & Financial Results
+        source:
+          type: object
+          description: The news source that published this article
+          properties:
+            id:
+              type: string
+              description: Unique source identifier
+              example: abc123def456
+            name:
+              type: string
+              example: Dagens Industri
+            domain:
+              type: string
+              example: di.se
+            source_type:
+              type: string
+              example: news_publication
+              enum:
+              - news_publication
+              - wire_service
+              - press_release
+              - government
+              - trade_publication
+              - blog
+              - stock_exchange
+              - research
+        company_ids:
+          type: array
+          items:
+            type: string
+          description: IDs of companies mentioned in the article
+          example:
+          - uejazctgchj4
+        country:
+          type:
+          - string
+          - 'null'
+          description: Country code (ISO 3166-1 alpha-2)
+          example: SE
+        event_id:
+          type:
+          - string
+          - 'null'
+          description: ID of the event this article belongs to. Null when the article has not been assigned to an event yet. An event that has since been merged or removed still answers `GET /events/{id}` with a tombstone rather than a 404.
+          example: 8fzq2rmtnk5c
+    CountrySummary:
+      type: object
+      required:
+      - id
+      - name
+      - iso2_code
+      properties:
+        id:
+          type: string
+          description: Unique country identifier
+          example: ctry_sweden12
+        name:
+          type: string
+          description: Country display name
+          example: Sweden
+        iso2_code:
+          type: string
+          description: ISO 3166-1 alpha-2 country code
+          example: SE
+    problem_details:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      - detail
+      - instance
+      properties:
+        type:
+          type: string
+          description: URI that identifies the problem type
+        title:
+          type: string
+          description: Short human-readable summary
+        status:
+          type: integer
+          description: HTTP status code
+        detail:
+          type: string
+          description: Human-readable explanation
+        instance:
+          type: string
+          description: URI that identifies the specific occurrence
+    IndexSummary:
+      type: object
+      required:
+      - id
+      - name
+      - symbol
+      properties:
+        id:
+          type: string
+          description: Unique stock index identifier
+          example: idx_omxs30abc
+        name:
+          type: string
+          description: Index display name
+          example: OMX Stockholm 30
+        symbol:
+          type: string
+          description: Index symbol
+          example: OMXS30
+        pan_nordic:
+          type: boolean
+          description: True if the index spans multiple Nordic exchanges (e.g. OMXN40), false if tied to a single exchange (e.g. OMXS30)
+          example: false
+        exchange:
+          type:
+          - object
+          - 'null'
+          description: Exchange associated with this index
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            mic_code:
+              type: string
+    ExchangeSummary:
+      type: object
+      required:
+      - id
+      - name
+      - mic_code
+      properties:
+        id:
+          type: string
+          description: Unique exchange identifier
+          example: exch_nasdaq1
+        name:
+          type: string
+          description: Exchange display name
+          example: Nasdaq Stockholm
+        mic_code:
+          type: string
+          description: ISO 10383 Market Identifier Code
+          example: XSTO
+        acronym:
+          type:
+          - string
+          - 'null'
+          description: Exchange acronym
+          example: NASDAQ
+        country:
+          type: object
+          description: Country where the exchange is located
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            iso2_code:
+              type: string
+    StorySummary:
+      type: object
+      required:
+      - id
+      - title
+      - summary
+      - article_count
+      - published_at
+      - updated_at
+      properties:
+        id:
+          type: string
+          description: Unique story identifier
+          example: story_volvo_q3
+        title:
+          type: string
+          description: Story title
+          example: Volvo Reports Record Q3 Results
+        summary:
+          type: string
+          description: Story summary
+          example: Volvo reported record third-quarter earnings, beating analyst expectations...
+        article_count:
+          type: integer
+          description: Number of articles in this story (matches the length of article_ids)
+          example: 4
+        published_at:
+          type: string
+          format: date-time
+          description: 'When the story''s newest source article was published (ISO 8601). This is editorial time, not the time the story reached this API: a story about older news carries an older date. Use it to filter by when news happened, never to track what is new to you.'
+          example: '2026-03-15T09:30:00.000Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: 'When this record last changed (ISO 8601). This is the clock incremental sync runs on. It only ever moves forward, unlike published_at. To sync: pass your last completed sync time as `updated_after`, drain every page via `pagination.next_cursor`, and only then advance your stored timestamp.'
+          example: '2026-03-15T09:35:00.000Z'
+        article_ids:
+          type: array
+          items:
+            type: string
+          description: IDs of articles in this story, most relevant first
+          example:
+          - art_abc123def
+          - art_def456ghi
+        country:
+          type:
+          - string
+          - 'null'
+          description: Country code (ISO 3166-1 alpha-2)
+          example: SE
+        company_ids:
+          type: array
+          items:
+            type: string
+          description: IDs of companies mentioned in this story
+          example:
+          - uejazctgchj4
+        category:
+          type: object
+          description: Story category
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+        event_id:
+          type:
+          - string
+          - 'null'
+          description: ID of the event this story was generated from. An event that has since been merged or removed still answers `GET /events/{id}` with a tombstone rather than a 404.
+          example: 8fzq2rmtnk5c
+    CompanySummary:
+      type: object
+      required:
+      - id
+      - name
+      - slug
+      - former_tickers
+      - also_listed_on
+      properties:
+        id:
+          type: string
+          description: Unique company identifier
+          example: w55fcw3pbg3p
+        name:
+          type: string
+          description: Company name
+          example: Volvo Car AB
+        slug:
+          type: string
+          description: URL-friendly company name
+          example: VOLCAR-B
+        ticker:
+          type:
+          - string
+          - 'null'
+          description: Primary stock ticker (null if unlisted)
+          example: VOLCAR-B
+        former_tickers:
+          type: array
+          items:
+            type: string
+          description: Tickers the company was formerly listed under, from delisted or renamed listings, excluding any that are still a current ticker. Always present; empty when none. The ticker filter resolves former tickers as well as the current one, so a match on an old ticker still returns the company; this field tells you the ticker you searched by is historical.
+          example:
+          - VOLV
+        is_active:
+          type: boolean
+          description: Whether the company is currently active/operating
+          example: true
+        exchange:
+          type:
+          - object
+          - 'null'
+          description: Primary exchange where the company is listed
+          properties:
+            id:
+              type: string
+              description: Exchange identifier
+            name:
+              type: string
+              description: Exchange display name
+            mic_code:
+              type: string
+              description: ISO 10383 Market Identifier Code
+        also_listed_on:
+          type: array
+          description: 'The company''s other active listings, excluding the primary listing above: cross-listings on other exchanges and additional share classes (which may be on the same exchange). Always present; empty when the company is single-listed or unlisted. The row''s ticker/exchange fields are the primary listing only. Company detail stock_listings is the authoritative full set.'
+          items:
+            type: object
+            required:
+            - ticker
+            - mic_code
+            properties:
+              ticker:
+                type: string
+                description: Ticker on this secondary exchange
+                example: VOLCAR-B
+              mic_code:
+                type: string
+                description: ISO 10383 Market Identifier Code of this exchange
+                example: XSTO
+          example: []
+  securitySchemes:
+    bearer_auth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+      description: API Key authentication using Bearer token
+x-refined-from:
+- nordic-financial-news-openapi-original.yml
+- nordic-financial-news-openapi.yml

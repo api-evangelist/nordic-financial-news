@@ -1,0 +1,11 @@
+name: Nordic Financial News API key scopes
+generated: '2026-10-09'
+method: searched
+source: https://docs.nordicfinancialnews.com/guides/authentication.md
+docs: https://docs.nordicfinancialnews.com/guides/authentication.md
+note: Scopes apply to API keys and to MCP OAuth connections; all scopes are enabled by default.
+scopes:
+- name: read
+  description: All content (articles, stories, companies, categories, countries, exchanges, indices, sources, search)
+- name: read:watchlist
+  description: Read your watchlists and their companies

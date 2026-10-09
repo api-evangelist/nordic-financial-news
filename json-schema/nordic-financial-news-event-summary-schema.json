@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/nordic-financial-news/main/json-schema/nordic-financial-news-event-summary-schema.json",
+  "title": "EventSummary",
+  "description": "An event: one real-world development, grouping the articles that report it. A `merged` or `removed` event (see `status`) returns only the minimal tombstone fields (`id`, `status`, `merged_into`, `updated_at`). Title, significance, event_type, counts, and every id array are omitted, never null-but-present, so a tombstone carries no content.",
+  "x-generated": "2026-10-09",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/nordic-financial-news-openapi.yml#/components/schemas/EventSummary",
+  "type": "object",
+  "required": [
+    "id",
+    "status",
+    "updated_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique event identifier"
+    },
+    "title": {
+      "type": "string",
+      "description": "Event title (omitted on a tombstone)"
+    },
+    "status": {
+      "type": "string",
+      "description": "Lifecycle status. `active`/`closed` are live (closed = coverage window lapsed but the event stays visible and can reopen). `merged` = absorbed into another event (see `merged_into`); `removed` = withdrawn from the feed (no live articles remain, or it was found to be incorrect). `merged`/`removed` never appear in the default list and carry only the tombstone fields.",
+      "enum": [
+        "active",
+        "closed",
+        "merged",
+        "removed"
+      ]
+    },
+    "significance": {
+      "type": "string",
+      "description": "Editorial importance (omitted on a tombstone). `notable` = front-page-worthy; `routine` = factual ledger record; `commentary` = single-article opinion/analysis.",
+      "enum": [
+        "notable",
+        "routine",
+        "commentary"
+      ]
+    },
+    "event_type": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "The kind of event (omitted on a tombstone)",
+      "properties": {
+        "slug": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        }
+      }
+    },
+    "article_count": {
+      "type": "integer",
+      "description": "Number of live articles reporting this event (omitted on a tombstone). This is the total count. Your plan's age and source restrictions do not reduce it; use GET on the event to see which of them your plan can fetch."
+    },
+    "first_reported_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "When this event was first reported (ISO 8601, omitted on a tombstone): the earliest known publication time among this event's member articles. Falls back to `last_article_at` for ordering when null. This is editorial time, not the time the record reached this API."
+    },
+    "last_article_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "Publication time of the newest article reporting this event (ISO 8601, omitted on a tombstone)."
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this record last changed (ISO 8601). This is the clock incremental sync runs on. Pass your last completed sync time as `updated_after`, drain every page via `pagination.next_cursor`, and only then advance your stored timestamp."
+    },
+    "company_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs of companies associated with this event, verified and visible only (omitted on a tombstone). Restricted to companies with an active-involvement role (subject, acquirer, target, investor, issuer, partner) unless `include_peripheral=true`."
+    },
+    "story_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs of published stories generated from this event, if any (omitted on a tombstone)"
+    },
+    "merged_into": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "ID of the surviving event this one was merged into. Present only when `status` is `merged`; null for every other status, including `removed` and on some older merged events."
+    },
+    "related_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Commentary-only metadata: the `id` of the factual event this commentary event comments on or reacts to, when the piece is about a specific factual event. Always null for non-commentary events, and often null for commentary events too (the piece may not be about a specific event). Filter with `related_to=<id>` to find commentary reacting to a given event."
+    }
+  }
+}

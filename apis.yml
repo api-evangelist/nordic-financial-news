@@ -1,28 +1,456 @@
 aid: nordic-financial-news
 name: Nordic Financial News
-description: 'Nordic Financial News is a company surfaced via the API Evangelist harvest backlog (source:
-  new-submission) and added to the network as a stub for full-pipeline profiling.'
+image: https://nordicfinancialnews.com/assets/nfn-og-c4be56ba.jpg
+description: Nordic Financial News delivers structured, English-translated financial
+  news from 70+ Nordic-language sources across Sweden, Norway, Denmark, Finland and
+  Iceland, with synthesized stories, company and exchange reference data, and a financial
+  calendar of earnings, dividends and AGMs, through a REST API, a remote OAuth MCP
+  server and the nfn CLI.
 url: https://raw.githubusercontent.com/api-evangelist/nordic-financial-news/refs/heads/main/apis.yml
 x-type: company
 x-source: harvest:new-submission
-x-tier: stub
-x-tier-reason: harvest
+x-tier: profiled
+x-tier-reason: enrichment pass 2026-10-09 (local-v5; was harvest)
 specificationVersion: '0.20'
 created: '2026-10-09'
 modified: '2026-10-09'
 tags:
 - Company
-apis: []
+- Financial News
+- Nordic
+- Market Data
+- Financial Calendar
+- MCP
+- News API
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: AgenticAccess
+  url: agentic-access/nordic-financial-news-agentic-access.yml
+- type: RateLimits
+  url: rate-limits/nordic-financial-news-rate-limits.yml
+- type: Plans
+  url: plans/nordic-financial-news-plans-pricing.yml
+- type: Spectral
+  url: rules/nordic-financial-news-rules.yml
+- type: JSONLD
+  url: json-ld/nordic-financial-news-context.jsonld
+- type: Vocabulary
+  url: vocabulary/nordic-financial-news-vocabulary.yml
+- type: DataModel
+  url: data-model/nordic-financial-news-data-model.yml
+- type: CLI
+  url: cli/nordic-financial-news-cli.yml
+- type: ChangeLog
+  url: changelog/nordic-financial-news-changelog.yml
+- type: Conventions
+  url: conventions/nordic-financial-news-conventions.yml
+- type: OAuthScopes
+  url: scopes/nordic-financial-news-scopes.yml
+- type: Lifecycle
+  url: lifecycle/nordic-financial-news-lifecycle.yml
+- type: ErrorCatalog
+  url: errors/nordic-financial-news-problem-types.yml
+- type: Conformance
+  url: conformance/nordic-financial-news-conformance.yml
+- type: LLMsTxt
+  url: llms/nordic-financial-news-llms.txt
+- type: AgentCard
+  url: a2a/nordic-financial-news-a2a.yml
+- type: ToolCrosswalk
+  url: mcp/nordic-financial-news-tool-crosswalk.yml
+- type: MCPServer
+  url: mcp/nordic-financial-news-mcp.yml
+- type: WellKnown
+  url: well-known/nordic-financial-news-well-known.yml
+- type: Hosts
+  url: hosts/nordic-financial-news-hosts.yml
+- type: Vendors
+  url: vendors/nordic-financial-news-vendors.yml
+- type: Newsroom
+  url: https://nordicfinancialnews.com/news
+- type: Authentication
+  url: authentication/nordic-financial-news-authentication.yml
+- type: DomainSecurity
+  url: security/nordic-financial-news-domain-security.yml
 - type: Website
   url: https://nordicfinancialnews.com/
 - type: Documentation
   url: https://docs.nordicfinancialnews.com/
+- type: APIReference
+  url: https://docs.nordicfinancialnews.com/api-reference/introduction
+- type: GettingStarted
+  url: https://docs.nordicfinancialnews.com/getting-started
+- type: Pricing
+  url: https://nordicfinancialnews.com/pricing
+- type: SignUp
+  url: https://nordicfinancialnews.com/users/sign_up
+- type: Login
+  url: https://nordicfinancialnews.com/users/sign_in
+- type: TermsOfService
+  url: https://nordicfinancialnews.com/terms
+- type: PrivacyPolicy
+  url: https://nordicfinancialnews.com/privacy
+- type: GitHubOrganization
+  url: https://github.com/nordic-financial-news
+- type: Blog
+  url: https://nordicfinancialnews.com/blog
+- type: Support
+  url: https://nordicfinancialnews.com/contact
+- type: ChangeLog
+  url: https://docs.nordicfinancialnews.com/changelog
+- type: StatusPage
+  url: https://status.nordicfinancialnews.com/
+- type: X
+  url: https://x.com/nordicfinnews
+apis:
+- aid: nordic-financial-news:nordic-financial-news-mcp
+  name: Nordic Financial News MCP Server
+  description: >-
+    Remote Streamable HTTP MCP server exposing 19 read tools over the same data as the REST API, with
+    OAuth 2.1 or static Bearer API keys.
+  humanURL: https://docs.nordicfinancialnews.com/model-context-protocol/index
+  baseURL: https://nordicfinancialnews.com/mcp
+  tags:
+  - MCP
+- aid: nordic-financial-news:nordic-financial-news-articles-api
+  name: Nordic Financial News Articles API
+  description: The Articles API from Nordic Financial News — 2 operation(s) for articles.
+  humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
+  baseURL: https://nordicfinancialnews.com/api/v1
+  tags:
+  - Articles
+  properties:
+  - type: OpenAPI
+    url: openapi/nordic-financial-news-articles-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-calendar-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-company-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-detail-schema.json
+- aid: nordic-financial-news:nordic-financial-news-calendar-events-api
+  name: Nordic Financial News Calendar Events API
+  description: The Calendar Events API from Nordic Financial News — 2 operation(s) for calendar events.
+  humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
+  baseURL: https://nordicfinancialnews.com/api/v1
+  tags:
+  - Calendar Events
+  properties:
+  - type: OpenAPI
+    url: openapi/nordic-financial-news-calendar-events-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-calendar-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-company-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-detail-schema.json
+- aid: nordic-financial-news:nordic-financial-news-categories-api
+  name: Nordic Financial News Categories API
+  description: The Categories API from Nordic Financial News — 1 operation(s) for categories.
+  humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
+  baseURL: https://nordicfinancialnews.com/api/v1
+  tags:
+  - Categories
+  properties:
+  - type: OpenAPI
+    url: openapi/nordic-financial-news-categories-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-calendar-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-company-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-detail-schema.json
+- aid: nordic-financial-news:nordic-financial-news-companies-api
+  name: Nordic Financial News Companies API
+  description: The Companies API from Nordic Financial News — 6 operation(s) for companies.
+  humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
+  baseURL: https://nordicfinancialnews.com/api/v1
+  tags:
+  - Companies
+  properties:
+  - type: OpenAPI
+    url: openapi/nordic-financial-news-companies-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-calendar-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-company-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-detail-schema.json
+- aid: nordic-financial-news:nordic-financial-news-countries-api
+  name: Nordic Financial News Countries API
+  description: The Countries API from Nordic Financial News — 2 operation(s) for countries.
+  humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
+  baseURL: https://nordicfinancialnews.com/api/v1
+  tags:
+  - Countries
+  properties:
+  - type: OpenAPI
+    url: openapi/nordic-financial-news-countries-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-calendar-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-company-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-detail-schema.json
+- aid: nordic-financial-news:nordic-financial-news-event-types-api
+  name: Nordic Financial News Event Types API
+  description: The Event Types API from Nordic Financial News — 1 operation(s) for event types.
+  humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
+  baseURL: https://nordicfinancialnews.com/api/v1
+  tags:
+  - Event Types
+  properties:
+  - type: OpenAPI
+    url: openapi/nordic-financial-news-event-types-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-calendar-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-company-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-detail-schema.json
+- aid: nordic-financial-news:nordic-financial-news-events-api
+  name: Nordic Financial News Events API
+  description: The Events API from Nordic Financial News — 2 operation(s) for events.
+  humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
+  baseURL: https://nordicfinancialnews.com/api/v1
+  tags:
+  - Events
+  properties:
+  - type: OpenAPI
+    url: openapi/nordic-financial-news-events-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-calendar-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-company-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-detail-schema.json
+- aid: nordic-financial-news:nordic-financial-news-exchanges-api
+  name: Nordic Financial News Exchanges API
+  description: The Exchanges API from Nordic Financial News — 3 operation(s) for exchanges.
+  humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
+  baseURL: https://nordicfinancialnews.com/api/v1
+  tags:
+  - Exchanges
+  properties:
+  - type: OpenAPI
+    url: openapi/nordic-financial-news-exchanges-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-calendar-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-company-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-detail-schema.json
+- aid: nordic-financial-news:nordic-financial-news-health-api
+  name: Nordic Financial News Health API
+  description: The Health API from Nordic Financial News — 1 operation(s) for health.
+  humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
+  baseURL: https://nordicfinancialnews.com/api/v1
+  tags:
+  - Health
+  properties:
+  - type: OpenAPI
+    url: openapi/nordic-financial-news-health-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-calendar-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-company-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-detail-schema.json
+- aid: nordic-financial-news:nordic-financial-news-indices-api
+  name: Nordic Financial News Indices API
+  description: The Indices API from Nordic Financial News — 3 operation(s) for indices.
+  humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
+  baseURL: https://nordicfinancialnews.com/api/v1
+  tags:
+  - Indices
+  properties:
+  - type: OpenAPI
+    url: openapi/nordic-financial-news-indices-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-calendar-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-company-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-detail-schema.json
+- aid: nordic-financial-news:nordic-financial-news-meta-api
+  name: Nordic Financial News Meta API
+  description: The Meta API from Nordic Financial News — 1 operation(s) for meta.
+  humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
+  baseURL: https://nordicfinancialnews.com/api/v1
+  tags:
+  - Meta
+  properties:
+  - type: OpenAPI
+    url: openapi/nordic-financial-news-meta-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-calendar-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-company-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-detail-schema.json
+- aid: nordic-financial-news:nordic-financial-news-search-api
+  name: Nordic Financial News Search API
+  description: The Search API from Nordic Financial News — 1 operation(s) for search.
+  humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
+  baseURL: https://nordicfinancialnews.com/api/v1
+  tags:
+  - Search
+  properties:
+  - type: OpenAPI
+    url: openapi/nordic-financial-news-search-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-calendar-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-company-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-detail-schema.json
+- aid: nordic-financial-news:nordic-financial-news-sources-api
+  name: Nordic Financial News Sources API
+  description: The Sources API from Nordic Financial News — 1 operation(s) for sources.
+  humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
+  baseURL: https://nordicfinancialnews.com/api/v1
+  tags:
+  - Sources
+  properties:
+  - type: OpenAPI
+    url: openapi/nordic-financial-news-sources-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-calendar-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-company-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-detail-schema.json
+- aid: nordic-financial-news:nordic-financial-news-stories-api
+  name: Nordic Financial News Stories API
+  description: The Stories API from Nordic Financial News — 2 operation(s) for stories.
+  humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
+  baseURL: https://nordicfinancialnews.com/api/v1
+  tags:
+  - Stories
+  properties:
+  - type: OpenAPI
+    url: openapi/nordic-financial-news-stories-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-calendar-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-company-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-detail-schema.json
+- aid: nordic-financial-news:nordic-financial-news-watchlists-api
+  name: Nordic Financial News Watchlists API
+  description: The Watchlists API from Nordic Financial News — 2 operation(s) for watchlists.
+  humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
+  baseURL: https://nordicfinancialnews.com/api/v1
+  tags:
+  - Watchlists
+  properties:
+  - type: OpenAPI
+    url: openapi/nordic-financial-news-watchlists-api-openapi.yml
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-calendar-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-company-detail-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-event-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-summary-schema.json
+  - type: JSONSchema
+    url: json-schema/nordic-financial-news-article-detail-schema.json
 x-submission-notes: News API + OAuth MCP
 x-submission-probe: OpenAPI 3.0.1 30 ops; docs 200; invented path 404 (empty body)
 x-submitted-by: david@nordicfinancialnews.com (apis.io/add, 2026-10-08)
+x-enrichment:
+  date: '2026-10-09'
+  status: enriched
+  artifacts_added: 12
+  pass: local-v5

@@ -1,0 +1,6 @@
+generated: '2026-10-09'
+method: probed
+generator: harvest-llms.py
+source: https://docs.nordicfinancialnews.com/llms.txt
+bytes: 13994
+note: saved verbatim; the provider's own document

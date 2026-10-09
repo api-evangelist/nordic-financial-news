@@ -1,0 +1,597 @@
+openapi: 3.2.0
+info:
+  title: Nordic Financial News Articles API
+  version: v1.0
+  contact:
+    name: API Support
+    email: hello@nordicfinancialnews.com
+  description: 'Operations tagged Articles across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://nordicfinancialnews.com
+  description: Production server
+tags:
+- name: Articles
+paths:
+  /api/v1/articles/{id}:
+    get:
+      summary: Get Article Details
+      tags:
+      - Articles
+      security:
+      - bearer_auth: []
+      description: 'Returns the details of a single article: an English headline, a short summary, key points, and associated companies, along with `article_url` pointing to the full original-language article at the source. Supports conditional requests via `If-None-Match` for efficient caching.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Article ID (e.g. `art_abc123def`).
+        example: art_abc123def
+        schema:
+          type: string
+      - name: include_peripheral
+        in: query
+        required: false
+        description: When `true`, widen `companies` and `company_ids` back to peripheral associations (a company named only as the article's source, an advisor, or a passing mention), which are otherwise excluded. Default `false` (principal-only). Each `companies[]` entry always carries `association_tier` regardless of this parameter.
+        example: 'true'
+        schema:
+          type: boolean
+      - name: If-None-Match
+        in: header
+        required: false
+        description: ETag value from a previous response. Returns `304 Not Modified` if the article has not changed.
+        schema:
+          type: string
+      - name: If-Modified-Since
+        in: header
+        required: false
+        description: HTTP date from a previous `Last-Modified` header. Returns `304 Not Modified` if nothing has changed since.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Article found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  article:
+                    $ref: '#/components/schemas/ArticleDetail'
+        '304':
+          description: Not Modified
+        '404':
+          description: Article not found
+          content:
+            application/json:
+              examples:
+                not_found:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/not-found
+                    title: Not Found
+                    status: 404
+                    detail: The requested resource could not be found
+                    instance: urn:request:abc123
+              schema:
+                $ref: '#/components/schemas/problem_details'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              examples:
+                unauthorized:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/auth-invalid
+                    title: Unauthorized
+                    status: 401
+                    detail: Missing or invalid API key
+                    instance: urn:request:abc123
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1ArticlesById
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+  /api/v1/articles:
+    get:
+      summary: List Articles
+      tags:
+      - Articles
+      security:
+      - bearer_auth: []
+      description: 'Returns a paginated list of live articles ordered by publication date (newest first). Each article includes an English headline, a short summary, and key points, with `article_url` linking to the full original-language article at the source.
+
+
+        ## Filtering
+
+        Supports filtering by country, category, source, company ticker, and content type. Use `GET /api/v1/sources` to discover source IDs for the `sources` filter. Use `ids` for batch lookup of specific articles.
+
+
+        ## Search
+
+        Use `q` for full-text search: relevance-ranked by default, newest-first with `sort=latest`, or matched by meaning with `mode=semantic`.
+
+
+        ## Polling for updates
+
+        Use `updated_after` for incremental syncing.
+
+
+        ## Pagination
+
+        Responses include cursor-based pagination and support field projection to minimize payload size.
+
+
+        ## Caching
+
+        Requests with `updated_after` are not cached: they return `Cache-Control: no-cache, no-store` and no `ETag`. The `ETag` reflects the response as served, not only record timestamps: it changes when plan limits alter the visible set, so a changed `ETag` does not necessarily mean a record was updated.'
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        description: Number of articles to return per page (default 25, max 100).
+        example: 25
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        description: Opaque pagination cursor returned as `pagination.next_cursor` from a previous response. Mutually exclusive with `q` unless `sort=latest` is also given.
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        description: 'Comma-separated list of fields to include in the response. Reduces payload size. Available fields: `id`, `title`, `article_url`, `published_at`, `updated_at`, `content_type`, `source`, `company_ids`, `country`, `category`.'
+        example: id,title,published_at
+        schema:
+          type: string
+      - name: updated_after
+        in: query
+        required: false
+        description: 'ISO 8601 datetime. Returns only articles updated after this timestamp. Use this for incremental sync: store the timestamp of your last completed sync, then request only newer results on each poll. Results are ordered by `updated_at` ascending and are cursor-paginated. Follow `pagination.next_cursor`, resending the same `updated_after` value, until it is null. Only advance your stored timestamp once you have drained every page (see the Real-Time Updates guide at https://docs.nordicfinancialnews.com). Mutually exclusive with `sort=latest` (with or without `q`). An `updated_after` walk is always ordered by `updated_at`.'
+        example: '2024-01-01T00:00:00Z'
+        schema:
+          type: string
+      - name: q
+        in: query
+        required: false
+        description: Full-text search query (2-200 characters). By default, results are ranked by relevance instead of publication date, as a single page with no cursor. Mutually exclusive with `cursor` unless `sort=latest` is also given. Disables caching.
+        example: Volvo earnings
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        description: Result order for `q`. `relevance` (default) is a single relevance-ranked page with no cursor; it requires `q`, and returns 400 without one. `latest` turns `q` into a match filter under the endpoint's normal newest-first order (`published_at` descending) and the response is cursor-paginated like any other request; without `q` it is an accepted no-op (that's already the default order). Mutually exclusive with `updated_after`.
+        example: latest
+        schema:
+          type: string
+          enum:
+          - relevance
+          - latest
+      - name: mode
+        in: query
+        required: false
+        description: 'Set to `semantic` to match `q` by meaning rather than by keyword. The match runs over each article''s translated title and summary, so it answers thematic questions a keyword match cannot ("defense contract wins", "battery cell capacity expansion").
+
+
+          Requires `q`, is mutually exclusive with `sort`, `cursor`, `updated_after` and `ids`, and returns a single ranked page capped by `limit`; every other filter (`country`, `category`, `sources`, `source_type`, `ticker`, `company`, `market`, `domicile`, `exchange`, `index`, `sector`, `watchlist`, `content_type`, `published_after`/`published_before`) remains a hard filter applied before the match, not after.
+
+
+          Each article gains a `distance` (raw cosine, lower is closer, rounded to 4dp). Compare it only within one response, never across responses: the scale is model-dependent. Ranking also blends in a small recency bonus that `distance` does not reflect. A server-side relevance floor drops weak matches, so a page is frequently shorter than `limit` and can be empty. Raising `limit` does not recover floored rows.
+
+
+          On plans with restricted article access the response carries `plan_limited: true`; the plan article count cap does not apply in this mode, only the source and age restrictions.
+
+
+          The response `pagination` object carries `count` only. There is no `next_cursor`, since a distance ranking cannot be cursor-paginated, and the response is uncacheable (`Cache-Control: no-cache, no-store`, no `ETag`). If the query cannot be embedded the request returns `503` rather than silently falling back to keyword matching.'
+        example: semantic
+        schema:
+          type: string
+          enum:
+          - semantic
+      - name: country
+        in: query
+        required: false
+        description: Filter by country using ISO 3166-1 alpha-2 code (e.g. `SE`, `NO`, `DK`). Comma-separated for multiple (e.g. `SE,NO`). Case-insensitive.
+        example: SE
+        schema:
+          type: string
+      - name: category
+        in: query
+        required: false
+        description: Filter by category `id` (from `GET /api/v1/categories`). Comma-separated for multiple (e.g. `cat_earnings1,cat_mna000001`); unknown ids are ignored.
+        example: cat_earnings1
+        schema:
+          type: string
+      - name: sources
+        in: query
+        required: false
+        description: Comma-separated list of source IDs (max 25). Use `GET /api/v1/sources` to discover source IDs. Also accepts array form (`sources[]=id1&sources[]=id2`). Disabled sources resolve to empty results.
+        example: abc123def456,ghi789jkl012
+        schema:
+          type: string
+      - name: source_type
+        in: query
+        required: false
+        description: 'Filter by source type, comma-separated. Valid values: `news_publication`, `wire_service`, `press_release`, `government`, `trade_publication`, `blog`, `stock_exchange`, `research`. Articles from disabled sources are excluded. An unrecognized value returns 400 naming the bad value(s).'
+        example: stock_exchange
+        schema:
+          type: string
+      - name: ticker
+        in: query
+        required: false
+        description: 'Filter by company stock ticker symbol, comma-separated for several (e.g. `VOLV-B` or `VOLV-B,ERIC-B`; matches any of them). Accepts full tickers with exchange suffix (e.g. `VOLV-B.ST`). Returns articles where the company is a principal association (subject, partner, investor, or competitor) — a company named only as the article''s source, an advisor, or a passing mention does not match. Former tickers resolve too: a company that renamed or moved venues is still reachable by an old ticker; the returned company `former_tickers` lists any such historical tickers. Matching is case-insensitive. Every value must resolve to a company, or the request is rejected with `400` naming the unknown values. Combined with `company`, the two filters intersect.'
+        example: VOLV-B
+        schema:
+          type: string
+      - name: company
+        in: query
+        required: false
+        description: Filter by company `id` (as returned by the companies endpoints), comma-separated for several (matches any of them). Complements `ticker`; use this to reach companies without a stock listing. Matches only the company's principal associations (subject, partner, investor, or competitor); a passing mention does not match. Every value must resolve, or the request is rejected with `400` naming the unknown ids. Combined with `ticker`, the two filters intersect.
+        example: cmpny1234567
+        schema:
+          type: string
+      - name: exchange
+        in: query
+        required: false
+        description: Filter by exchange using ISO 10383 Market Identifier Code, comma-separated for multiple (e.g. `XSTO` for Nasdaq Stockholm, `XCSE` for Nasdaq Copenhagen, `XHEL` for Nasdaq Helsinki, `XOSL` for Oslo Børs). Returns articles about companies actively listed there. A company counts only through a principal association (subject, partner, investor, or competitor); a passing mention does not qualify. Case-insensitive.
+        example: XSTO,XCSE
+        schema:
+          type: string
+      - name: market
+        in: query
+        required: false
+        description: Filter to articles about companies with an active equity listing in these countries' exchanges (ISO 3166-1 alpha-2, comma-separated, e.g. `SE,NO`). `SE` covers Nasdaq Stockholm, First North, Spotlight and NGM. Distinct from `country` (the source that reported it) and `domicile` (legal domicile). Includes foreign-domiciled but locally-listed issuers. A company counts only through a principal association (subject, partner, investor, or competitor); a passing mention does not qualify.
+        example: SE
+        schema:
+          type: string
+      - name: domicile
+        in: query
+        required: false
+        description: Filter to articles about companies legally domiciled in these countries (ISO 3166-1 alpha-2, comma-separated). Reaches unlisted companies; excludes foreign-domiciled but locally-listed issuers. Use `market` for market-coverage questions. A company counts only through a principal association (subject, partner, investor, or competitor); a passing mention does not qualify.
+        example: SE
+        schema:
+          type: string
+      - name: index
+        in: query
+        required: false
+        description: Filter by stock index id or symbol (e.g. `OMXS30`, `OMXC25`, `OMXH25`, `OBX`). Returns articles about companies in that index. A company counts only through a principal association (subject, partner, investor, or competitor); a passing mention does not qualify. Case-insensitive for symbols.
+        example: OMXS30
+        schema:
+          type: string
+      - name: sector
+        in: query
+        required: false
+        description: 'Filter by company sector. A company counts only through a principal association (subject, partner, investor, or competitor); a passing mention does not qualify. Case-sensitive; must exactly match one of: `Communication Services`, `Consumer Discretionary`, `Consumer Staples`, `Energy`, `Financials`, `Health Care`, `Industrials`, `Information Technology`, `Materials`, `Real Estate`, `Utilities`.'
+        example: Industrials
+        schema:
+          type: string
+      - name: content_type
+        in: query
+        required: false
+        description: 'Filter by article content type, comma-separated. Valid values: `news`, `analysis`, `press_release`, `market_commentary`, `market_news`, `trading_halt`, `trading_event`, `other`. `GET /api/v1/meta` lists them as `content_types`. An unrecognized value returns 400 naming the bad value(s).'
+        example: news,analysis
+        schema:
+          type: string
+      - name: published_after
+        in: query
+        required: false
+        description: ISO 8601 datetime. Returns articles published on or after this timestamp.
+        example: '2024-06-01T00:00:00Z'
+        schema:
+          type: string
+      - name: published_before
+        in: query
+        required: false
+        description: ISO 8601 datetime. Returns articles published before this timestamp.
+        example: '2024-12-31T23:59:59Z'
+        schema:
+          type: string
+      - name: listed
+        in: query
+        required: false
+        description: When `true`, only return articles about at least one company with an active listing on any exchange, through a principal association (subject, partner, investor, or competitor). A passing mention does not qualify, and `include_peripheral` does not change this. A company whose listings are all delisted does not count. Hidden and unverified companies do not count.
+        example: 'true'
+        schema:
+          type: string
+      - name: watchlist
+        in: query
+        required: false
+        description: Restricts to articles about companies in a single watchlist, identified by its `id` (from the List Watchlists endpoint), through a principal association (subject, partner, investor, or competitor) — a passing mention does not qualify. An unknown id returns no articles. Requires `read:watchlist` scope.
+        example: wl_8fk2a1b3c4d5
+        schema:
+          type: string
+      - name: primary_only
+        in: query
+        required: false
+        description: When `true`, narrows further within the already-principal match, to only articles where the matched company (`ticker`, `company`, or `watchlist`) is the primary subject. Requires `ticker`, `company`, or `watchlist`, and returns 400 without one.
+        example: 'true'
+        schema:
+          type: boolean
+      - name: include_peripheral
+        in: query
+        required: false
+        description: 'When `true`, widen the `ticker`, `company` and `watchlist` filters — and each article''s `company_ids` — back to peripheral associations (a company named only as the article''s source, an advisor, or a passing mention), which are otherwise excluded. Default `false` (principal-only: subject, partner, investor, competitor). `primary_only` still wins where it applies: the primary-subject restriction is kept even when peripheral is requested. Not honored on `GET /api/v1/search`.'
+        example: 'true'
+        schema:
+          type: boolean
+      - name: ids
+        in: query
+        required: false
+        description: 'Comma-separated list of article IDs for batch lookup (max 100). Cannot be combined with `cursor`, `updated_after`, or `sort`. Returns a single page: `pagination` carries `count` only, with no `next_cursor`. IDs that don''t resolve, or that your plan can''t access, are omitted rather than rejected, so `count` can be less than the number of IDs sent. Key off each row''s `id`.'
+        example: k3n9x2m7p4q1,b8v5c2z6w1r3
+        schema:
+          type: string
+      - name: If-None-Match
+        in: header
+        required: false
+        description: ETag value from a previous response. Returns `304 Not Modified` if data has not changed.
+        schema:
+          type: string
+      - name: If-Modified-Since
+        in: header
+        required: false
+        description: HTTP date from a previous `Last-Modified` header. Returns `304 Not Modified` if nothing has changed since.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Articles retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  articles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ArticleSummary'
+                  pagination:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                        example: 25
+                      next_cursor:
+                        type:
+                        - string
+                        - 'null'
+                required:
+                - articles
+        '304':
+          description: Not Modified
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              examples:
+                unauthorized:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/auth-invalid
+                    title: Unauthorized
+                    status: 401
+                    detail: Missing or invalid API key
+                    instance: urn:request:abc123
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1Articles
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+components:
+  schemas:
+    ArticleSummary:
+      type: object
+      required:
+      - id
+      - title
+      - published_at
+      - updated_at
+      - article_url
+      - content_type
+      - category
+      - source
+      - company_ids
+      - country
+      properties:
+        id:
+          type: string
+          description: Unique article identifier
+          example: art_abc123def
+        title:
+          type: string
+          description: Article title in English. Machine-translated when the source article is not in English.
+          example: Volvo Reports Record Q3 Earnings
+        article_url:
+          type: string
+          description: Link to the original article
+          example: https://di.se/articles/volvo-q3-2026
+        content_type:
+          type: string
+          description: Type of article content
+          example: news
+          enum:
+          - news
+          - analysis
+          - press_release
+          - market_commentary
+          - market_news
+          - trading_halt
+          - trading_event
+          - other
+        published_at:
+          type: string
+          format: date-time
+          description: When the article was published by its source (ISO 8601). This is editorial time, not the time the article reached this API. Use it to filter by when news happened, never to track what is new to you.
+          example: '2026-03-15T09:30:00.000Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: 'When this record last changed (ISO 8601). This is the clock incremental sync runs on. It only ever moves forward, unlike published_at. To sync: pass your last completed sync time as `updated_after`, drain every page via `pagination.next_cursor`, and only then advance your stored timestamp.'
+          example: '2026-03-15T09:35:00.000Z'
+        category:
+          type: object
+          description: Article category
+          properties:
+            id:
+              type: string
+              example: cat_earnings1
+            name:
+              type: string
+              example: Earnings & Financial Results
+        source:
+          type: object
+          description: The news source that published this article
+          properties:
+            id:
+              type: string
+              description: Unique source identifier
+              example: abc123def456
+            name:
+              type: string
+              example: Dagens Industri
+            domain:
+              type: string
+              example: di.se
+            source_type:
+              type: string
+              example: news_publication
+              enum:
+              - news_publication
+              - wire_service
+              - press_release
+              - government
+              - trade_publication
+              - blog
+              - stock_exchange
+              - research
+        company_ids:
+          type: array
+          items:
+            type: string
+          description: IDs of companies mentioned in the article
+          example:
+          - uejazctgchj4
+        country:
+          type:
+          - string
+          - 'null'
+          description: Country code (ISO 3166-1 alpha-2)
+          example: SE
+        event_id:
+          type:
+          - string
+          - 'null'
+          description: ID of the event this article belongs to. Null when the article has not been assigned to an event yet. An event that has since been merged or removed still answers `GET /events/{id}` with a tombstone rather than a 404.
+          example: 8fzq2rmtnk5c
+    problem_details:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      - detail
+      - instance
+      properties:
+        type:
+          type: string
+          description: URI that identifies the problem type
+        title:
+          type: string
+          description: Short human-readable summary
+        status:
+          type: integer
+          description: HTTP status code
+        detail:
+          type: string
+          description: Human-readable explanation
+        instance:
+          type: string
+          description: URI that identifies the specific occurrence
+    ArticleDetail:
+      allOf:
+      - $ref: '#/components/schemas/ArticleSummary'
+      - type: object
+        properties:
+          source_title:
+            type: string
+            description: Original article title in source language
+            example: Volvo rapporterar rekordresultat för Q3
+          summary:
+            type: string
+            description: 'AI-generated English summary of the article: a machine translation and paraphrase of the source text, not verbatim.'
+            example: Volvo reported record Q3 earnings driven by strong truck demand...
+          updated_at:
+            type: string
+            format: date-time
+            description: When the article was last updated (ISO 8601)
+            example: '2026-03-15T10:00:00.000Z'
+          story_ids:
+            type: array
+            items:
+              type: string
+            description: IDs of published stories covering this article, if any
+            example:
+            - story_volvo_q3
+          companies:
+            type: array
+            description: Companies mentioned in this article, primary company first
+            items:
+              type: object
+              required:
+              - id
+              - name
+              - is_primary
+              - association_tier
+              properties:
+                id:
+                  type: string
+                  description: Unique company identifier
+                  example: uejazctgchj4
+                name:
+                  type: string
+                  description: Company name
+                  example: AB Volvo (Volvo Group)
+                ticker:
+                  type:
+                  - string
+                  - 'null'
+                  description: Primary stock ticker
+                  example: VOLV-B
+                is_primary:
+                  type: boolean
+                  description: Whether this company is the primary subject of the article
+                  example: true
+                association_tier:
+                  type: string
+                  enum:
+                  - principal
+                  - peripheral
+                  description: How the company relates to the article. `principal` (subject, partner, investor, competitor) is the default set; `peripheral` (source, advisor, passing mention) appears only when `include_peripheral=true`. Always present.
+                  example: principal
+            example:
+            - id: uejazctgchj4
+              name: AB Volvo (Volvo Group)
+              ticker: VOLV-B
+              is_primary: true
+              association_tier: principal
+          key_points:
+            type: array
+            items:
+              type: string
+            description: Key points from the article. Machine-generated English paraphrases of statements in the source article, not verbatim quotations.
+            example:
+            - Revenue up 15% year-over-year
+            - Strong truck demand in Europe
+  securitySchemes:
+    bearer_auth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+      description: API Key authentication using Bearer token
+x-refined-from:
+- nordic-financial-news-openapi-original.yml
+- nordic-financial-news-openapi.yml

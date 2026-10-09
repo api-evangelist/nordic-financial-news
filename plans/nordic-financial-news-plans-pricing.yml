@@ -1,0 +1,44 @@
+name: Nordic Financial News Plans
+generated: '2026-10-09'
+method: searched
+source: https://nordicfinancialnews.com/pricing
+audience: business-product
+pricing_basis: tiered-subscription
+published: true
+currency: USD
+delivery:
+  delivery: managed
+note: Prices are in USD and exclude sales tax / VAT (per the page).
+plans:
+- name: Free
+  description: For anyone sizing up the coverage. No card needed, no time limit.
+  price: 0
+  price_text: "$0"
+  features: [Last 14 days, limited sources, Calendar preview (next 50 upcoming events), 5 watchlists up to 50 companies]
+  limits:
+  - limit_text: 100 (evaluation)
+    name: API requests per month
+  - limit_text: 100/hour API, 100/hour MCP
+    name: rate limit
+- name: Plus
+  description: For people who read the news, directly or with AI agents.
+  price: 29
+  price_text: "$29"
+  billing_period: month
+  features: [Full archive, All 70+ sources, AI summary stories, Full financial calendar, 50 watchlists 500 companies]
+  limits:
+  - limit_text: 100 (evaluation)
+    name: API requests per month
+  - limit_text: 100/hour API, 500/hour MCP
+    name: rate limit
+- name: Pro
+  description: For developers and AI agents that query it. Production API, MCP, and CLI access.
+  price: 79
+  price_text: "$79"
+  billing_period: month
+  features: [Everything in Plus, Unlimited watchlists and companies, Production API, MCP and CLI access]
+  limits:
+  - limit_text: 25,000 API and MCP requests included, then $3.00 per 1,000
+    name: included requests
+  - limit_text: 5,000/hour
+    name: rate limit

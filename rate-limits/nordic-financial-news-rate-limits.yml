@@ -1,0 +1,26 @@
+name: Nordic Financial News Rate Limits
+generated: '2026-10-09'
+method: searched
+source: https://nordicfinancialnews.com/pricing
+note: The OpenAPI info.description (https://nordicfinancialnews.com/openapi/v1/openapi.yaml) states limits apply per account shared across keys, a per-IP cap of 300 requests per 5-minute window, and 429 with Retry-After on exhaustion; /health is exempt.
+headers: [X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-RateLimit-Policy, X-Monthly-Limit, X-Monthly-Remaining, X-Monthly-Reset, X-Monthly-Usage, Retry-After]
+exhaustion_status: 429
+limits:
+- name: Free hourly
+  plan: Free
+  limit_text: 100/hour API, 100/hour MCP
+  max: 100
+  window: hour
+  scope: per-account
+- name: Plus hourly
+  plan: Plus
+  limit_text: 100/hour API, 500/hour MCP
+  max: 100
+  window: hour
+  scope: per-account
+- name: Pro hourly
+  plan: Pro
+  limit_text: 5,000/hour
+  max: 5000
+  window: hour
+  scope: per-account

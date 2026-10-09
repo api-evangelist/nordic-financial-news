@@ -1,0 +1,312 @@
+openapi: 3.2.0
+info:
+  title: Nordic Financial News Watchlists API
+  version: v1.0
+  contact:
+    name: API Support
+    email: hello@nordicfinancialnews.com
+  description: 'Operations tagged Watchlists across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://nordicfinancialnews.com
+  description: Production server
+tags:
+- name: Watchlists
+paths:
+  /api/v1/watchlists:
+    get:
+      summary: List Watchlists
+      tags:
+      - Watchlists
+      security:
+      - bearer_auth: []
+      description: Returns all watchlists belonging to the authenticated user, ordered by position (ascending) then creation date. Each watchlist includes a company count but not the full company list. Use the Get Watchlist Details endpoint to retrieve companies. Requires the `read:watchlist` scope.
+      parameters:
+      - name: If-None-Match
+        in: header
+        required: false
+        description: ETag value from a previous response. Returns `304 Not Modified` if data has not changed.
+        schema:
+          type: string
+      - name: If-Modified-Since
+        in: header
+        required: false
+        description: HTTP date from a previous `Last-Modified` header. Returns `304 Not Modified` if nothing has changed since.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Watchlists retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  watchlists:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WatchlistSummary'
+                required:
+                - watchlists
+        '304':
+          description: Not Modified
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              examples:
+                unauthorized:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/auth-invalid
+                    title: Unauthorized
+                    status: 401
+                    detail: Missing or invalid API key
+                    instance: urn:request:abc123
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1Watchlists
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+  /api/v1/watchlists/{id}:
+    get:
+      summary: Get Watchlist Details
+      tags:
+      - Watchlists
+      security:
+      - bearer_auth: []
+      description: Returns watchlist details along with a paginated list of its companies, ordered alphabetically by company name. Hidden and unverified companies are excluded. Requires the `read:watchlist` scope.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: Watchlist ID (e.g. `a1b2c3d4e5f6`).
+        example: a1b2c3d4e5f6
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Number of companies to return per page (default 25, max 100).
+        example: 25
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        description: Opaque pagination cursor returned as `pagination.next_cursor` from a previous response.
+        schema:
+          type: string
+      - name: If-None-Match
+        in: header
+        required: false
+        description: ETag value from a previous response. Returns `304 Not Modified` if data has not changed.
+        schema:
+          type: string
+      - name: If-Modified-Since
+        in: header
+        required: false
+        description: HTTP date from a previous `Last-Modified` header. Returns `304 Not Modified` if nothing has changed since.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Watchlist retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  watchlist:
+                    $ref: '#/components/schemas/WatchlistSummary'
+                  companies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CompanySummary'
+                  pagination:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      next_cursor:
+                        type:
+                        - string
+                        - 'null'
+                required:
+                - watchlist
+                - companies
+        '304':
+          description: Not Modified
+        '404':
+          description: Watchlist not found
+          content:
+            application/json:
+              examples:
+                not_found:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/not-found
+                    title: Not Found
+                    status: 404
+                    detail: The requested resource could not be found
+                    instance: urn:request:abc123
+              schema:
+                $ref: '#/components/schemas/problem_details'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              examples:
+                unauthorized:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/auth-invalid
+                    title: Unauthorized
+                    status: 401
+                    detail: Missing or invalid API key
+                    instance: urn:request:abc123
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1WatchlistsById
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+components:
+  schemas:
+    WatchlistSummary:
+      type: object
+      required:
+      - id
+      - name
+      - position
+      - company_count
+      properties:
+        id:
+          type: string
+          description: Unique watchlist identifier
+          example: a1b2c3d4e5f6
+        name:
+          type: string
+          description: User-defined watchlist name
+          example: Tech Stocks
+        position:
+          type: integer
+          description: Display order (lower values appear first)
+          example: 0
+        company_count:
+          type: integer
+          description: Number of companies in the watchlist
+          example: 12
+        created_at:
+          type: string
+          format: date-time
+          description: When the watchlist was created
+          example: '2025-01-15T10:30:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: When the watchlist was last modified
+          example: '2025-03-01T14:00:00Z'
+    CompanySummary:
+      type: object
+      required:
+      - id
+      - name
+      - slug
+      - former_tickers
+      - also_listed_on
+      properties:
+        id:
+          type: string
+          description: Unique company identifier
+          example: w55fcw3pbg3p
+        name:
+          type: string
+          description: Company name
+          example: Volvo Car AB
+        slug:
+          type: string
+          description: URL-friendly company name
+          example: VOLCAR-B
+        ticker:
+          type:
+          - string
+          - 'null'
+          description: Primary stock ticker (null if unlisted)
+          example: VOLCAR-B
+        former_tickers:
+          type: array
+          items:
+            type: string
+          description: Tickers the company was formerly listed under, from delisted or renamed listings, excluding any that are still a current ticker. Always present; empty when none. The ticker filter resolves former tickers as well as the current one, so a match on an old ticker still returns the company; this field tells you the ticker you searched by is historical.
+          example:
+          - VOLV
+        is_active:
+          type: boolean
+          description: Whether the company is currently active/operating
+          example: true
+        exchange:
+          type:
+          - object
+          - 'null'
+          description: Primary exchange where the company is listed
+          properties:
+            id:
+              type: string
+              description: Exchange identifier
+            name:
+              type: string
+              description: Exchange display name
+            mic_code:
+              type: string
+              description: ISO 10383 Market Identifier Code
+        also_listed_on:
+          type: array
+          description: 'The company''s other active listings, excluding the primary listing above: cross-listings on other exchanges and additional share classes (which may be on the same exchange). Always present; empty when the company is single-listed or unlisted. The row''s ticker/exchange fields are the primary listing only. Company detail stock_listings is the authoritative full set.'
+          items:
+            type: object
+            required:
+            - ticker
+            - mic_code
+            properties:
+              ticker:
+                type: string
+                description: Ticker on this secondary exchange
+                example: VOLCAR-B
+              mic_code:
+                type: string
+                description: ISO 10383 Market Identifier Code of this exchange
+                example: XSTO
+          example: []
+    problem_details:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      - detail
+      - instance
+      properties:
+        type:
+          type: string
+          description: URI that identifies the problem type
+        title:
+          type: string
+          description: Short human-readable summary
+        status:
+          type: integer
+          description: HTTP status code
+        detail:
+          type: string
+          description: Human-readable explanation
+        instance:
+          type: string
+          description: URI that identifies the specific occurrence
+  securitySchemes:
+    bearer_auth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+      description: API Key authentication using Bearer token
+x-refined-from:
+- nordic-financial-news-openapi-original.yml
+- nordic-financial-news-openapi.yml

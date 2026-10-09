@@ -1,0 +1,741 @@
+openapi: 3.2.0
+info:
+  title: Nordic Financial News Events API
+  version: v1.0
+  contact:
+    name: API Support
+    email: hello@nordicfinancialnews.com
+  description: 'Operations tagged Events across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://nordicfinancialnews.com
+  description: Production server
+tags:
+- name: Events
+paths:
+  /api/v1/events:
+    get:
+      summary: List Events
+      tags:
+      - Events
+      security:
+      - bearer_auth: []
+      description: Returns a paginated list of Events.
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        description: Number of events to return per page (default 25, max 100).
+        example: 25
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        description: Opaque pagination cursor returned as `pagination.next_cursor` from a previous response. Works with `q` too; `q` is a filter, not a separate search mode. Not accepted with `mode=semantic`. When continuing an `updated_after` sync, resend the same `updated_after` value alongside it.
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        description: Comma-separated list of fields to include in the response. Reduces payload size. `id` is always included.
+        example: title,status,article_count
+        schema:
+          type: string
+      - name: updated_after
+        in: query
+        required: false
+        description: ISO 8601 datetime. Returns only events updated after this timestamp, including merge/removal tombstones. Use for incremental sync.
+        example: '2026-03-01T00:00:00Z'
+        schema:
+          type: string
+      - name: q
+        in: query
+        required: false
+        description: Full-text filter over the event's own title and summary as well as its live member articles' indexed content (title, summary, key points, plus tagged company names and key facts), so an event can match on a company its coverage only tags. Matches stay in the default feed order (most recently reported first) and are cursor-paginated like any other request; combine with `window`/`last_article_after` for "latest on X". This differs deliberately from `q` on `GET /api/v1/articles` and `GET /api/v1/stories`, which returns a relevance-ranked single page unless `sort=latest` is given. Here `q` is a filter over the ordinary feed order, so it composes with `window` and the cursor. `mode=semantic` replaces this with a ranked match (see `mode`).
+        example: Volvo earnings
+        schema:
+          type: string
+      - name: mode
+        in: query
+        required: false
+        description: 'Set to `semantic` to match `q` by meaning rather than by keyword, for thematic questions a keyword match cannot answer ("defense contract wins", "battery cell capacity expansion").
+
+
+          The match runs over the translated title and summary of each event''s live member articles, not over the event''s own title or summary, and not over the key points, tagged company names or key facts that plain `q` also reaches. It is therefore not a strict recall improvement over plain `q`: an event whose title is on-topic while its member articles are oblique can match `q` and not `mode=semantic`.
+
+
+          Results are ranked by distance blended with a small recency bonus, not in feed order. Requires `q`, is mutually exclusive with `sort`, `cursor` and `updated_after`, and returns a single ranked page capped by `limit`. Every other filter remains a hard filter applied before the match, not after. `window` and `last_article_after`/`last_article_before` still bound the event''s activity, not the date of the matched article, so the member article behind a match can be considerably older than the event''s last activity.
+
+
+          Each event gains a `distance` (raw cosine, lower is closer): the distance of its best-matching member article that your plan can access, so the same event can carry different distances on different plans. Compare it only within one response, never across responses: the scale is model-dependent. Ranking uses the mean of an event''s two closest member articles and a recency bonus, neither of which `distance` reflects. A server-side relevance floor drops weak matches, so a page is frequently shorter than `limit` and can be empty.
+
+
+          The plan cap on recent events does not apply in this mode: the match runs over every event with member articles inside your plan''s age and source restrictions, and `plan_limited: true` reports only that those restrictions are in force. `truncated: true` means the article-match horizon was exhausted, so further matching events exist that this response cannot reach, and no cursor can page to them.
+
+
+          The response `pagination` object carries `count` only. There is no `next_cursor`, and the response is uncacheable (`Cache-Control: no-cache, no-store`, no `ETag`). If the query cannot be embedded the request returns `503` rather than silently falling back to keyword matching.'
+        example: semantic
+        schema:
+          type: string
+          enum:
+          - semantic
+      - name: event_type
+        in: query
+        required: false
+        description: Filter by event type slug, comma-separated (e.g. `earnings-report,acquisition-announced`). These are Events taxonomy slugs (hyphenated) from `GET /api/v1/event_types` and are the only values accepted here. The underscored calendar `event_type` values used by `GET /api/v1/calendar_events` are rejected. A few spellings overlap across the two vocabularies (e.g. `delisting`) while denoting different things. An unrecognized slug returns 400 naming the bad slug(s).
+        example: earnings-report
+        schema:
+          type: string
+      - name: significance
+        in: query
+        required: false
+        description: 'Editorial importance, the feed''s materiality threshold, comma-separated (e.g. `notable,routine`). Valid values: `notable` (material, front-page-worthy events), `routine` (ledger records: routine filings, scheduled disclosures), `commentary` (opinion/analysis pieces). Use `significance=notable` to restrict the feed to material events. An unrecognized value returns 400 naming the bad value(s).'
+        example: notable,routine
+        schema:
+          type: string
+      - name: ticker
+        in: query
+        required: false
+        description: Filter to events involving the company with this stock ticker (e.g. `VOLV-B`), comma-separated for several (matches any of them). Accepts the exchange-suffixed form; former tickers resolve. Matching is case-insensitive. Every value must resolve to a company, or the request is rejected with `400` naming the unknown values. Combined with `company`, the two filters intersect. Matches active-involvement roles only unless `include_peripheral=true`.
+        example: VOLV-B
+        schema:
+          type: string
+      - name: company
+        in: query
+        required: false
+        description: Filter to events involving a company by its `id`, comma-separated for several (matches any of them). Complements `ticker`; reaches companies without a stock listing. Every value must resolve, or the request is rejected with `400` naming the unknown ids. Combined with `ticker`, the two filters intersect. Matches active-involvement roles only unless `include_peripheral=true`.
+        example: cmpny1234567
+        schema:
+          type: string
+      - name: country
+        in: query
+        required: false
+        description: Filter to events with a live member article from this country (ISO 3166-1 alpha-2, comma-separated for multiple). Applied at the article grain, so sync tombstones do not respect it.
+        example: SE
+        schema:
+          type: string
+      - name: category
+        in: query
+        required: false
+        description: Filter to events with a live member article in any of these categories, by their `id` (comma-separated; unknown ids are ignored). Applied at the article grain, so sync tombstones do not respect it.
+        example: cat_earnings1
+        schema:
+          type: string
+      - name: sources
+        in: query
+        required: false
+        description: Filter to events with a live member article from these sources, by their `id` (comma-separated, max 25). Applied at the article grain, so sync tombstones do not respect it.
+        example: src123456789
+        schema:
+          type: string
+      - name: source_type
+        in: query
+        required: false
+        description: 'Filter to events with a live member article from this source type, comma-separated. Valid values: `news_publication`, `wire_service`, `press_release`, `government`, `trade_publication`, `blog`, `stock_exchange`, `research`. Articles from disabled sources are excluded. Applied at the article grain, so sync tombstones do not respect it. An unrecognized value returns 400 naming the bad value(s).'
+        example: stock_exchange
+        schema:
+          type: string
+      - name: content_type
+        in: query
+        required: false
+        description: 'Filter to events with a live member article of this content type, comma-separated. Valid values: `news`, `analysis`, `press_release`, `market_commentary`, `market_news`, `trading_halt`, `trading_event`, `other`. Applied at the article grain, so sync tombstones do not respect it. An unrecognized value returns 400 naming the bad value(s). Content type is an AI-assigned label per article. To find events with a member article from a primary disclosure source, filter on `source_type` (`wire_service`, `stock_exchange`, `press_release`, `government`) instead.'
+        example: press_release
+        schema:
+          type: string
+      - name: exchange
+        in: query
+        required: false
+        description: Filter by exchange MIC code, comma-separated for multiple (e.g. `XSTO`, `XSTO,XCSE`).
+        example: XSTO
+        schema:
+          type: string
+      - name: market
+        in: query
+        required: false
+        description: 'Filter to events involving a company with an active equity listing in these countries'' exchanges (ISO 3166-1 alpha-2, comma-separated, e.g. `SE,NO`). `SE` covers Nasdaq Stockholm, First North, Spotlight and NGM. Distinct from `country` (the source that reported it) and `domicile` (legal domicile). Includes foreign-domiciled but locally-listed issuers. Note: a just-listed company''s listing record can lag its IPO event.'
+        example: SE
+        schema:
+          type: string
+      - name: domicile
+        in: query
+        required: false
+        description: Filter to events involving a company legally domiciled in these countries (ISO 3166-1 alpha-2, comma-separated). Reaches unlisted companies; excludes foreign-domiciled but locally-listed issuers. Use `market` for market-coverage questions.
+        example: SE
+        schema:
+          type: string
+      - name: index
+        in: query
+        required: false
+        description: Filter to events for companies in this stock index, by `id` or symbol.
+        example: OMXS30
+        schema:
+          type: string
+      - name: sector
+        in: query
+        required: false
+        description: Filter by company sector. Must exactly match a standard sector name.
+        example: Industrials
+        schema:
+          type: string
+      - name: listed
+        in: query
+        required: false
+        description: When `true`, only return events involving at least one company with an active listing on any exchange, matched by the same rule as `exchange`/`market`/`domicile`/`index`/`sector`. On a factual event, the company must have an active-involvement role (subject, acquirer, target, investor, issuer, partner); an advisor, speaker or passing mention does not qualify. On a commentary event, any role counts when a live article in the event is about that company rather than only mentioning it. `include_peripheral` does not change this. A company whose listings are all delisted does not count. Hidden and unverified companies do not count.
+        example: 'true'
+        schema:
+          type: string
+      - name: watchlist
+        in: query
+        required: false
+        description: Restrict to events for companies in a single watchlist, by its `id`. Requires the `read:watchlist` scope. Matches active-involvement roles only unless `include_peripheral=true`.
+        example: wl_8fk2a1b3c4d5
+        schema:
+          type: string
+      - name: first_reported_after
+        in: query
+        required: false
+        description: ISO 8601 datetime. Only events first reported at or after this time.
+        example: '2026-01-01T00:00:00Z'
+        schema:
+          type: string
+      - name: first_reported_before
+        in: query
+        required: false
+        description: ISO 8601 datetime. Only events first reported before this time.
+        example: '2026-12-31T23:59:59Z'
+        schema:
+          type: string
+      - name: last_article_after
+        in: query
+        required: false
+        description: ISO 8601 datetime. Only events whose most recent activity (`last_article_at`, or `first_reported_at` when that is null) is at or after this time. This matches when the event was last active, not when it broke. Mutually exclusive with `window`.
+        example: '2026-03-01T00:00:00Z'
+        schema:
+          type: string
+      - name: last_article_before
+        in: query
+        required: false
+        description: ISO 8601 datetime. Only events whose most recent activity is before this time. Mutually exclusive with `window`.
+        example: '2026-03-02T00:00:00Z'
+        schema:
+          type: string
+      - name: window
+        in: query
+        required: false
+        description: Relative shorthand for `last_article_after`, e.g. `8h`, `24h`, `7d` (hours or days only, max 365d equivalent). Evaluated per request against the server clock. Compute `last_article_after` yourself for a stable multi-page snapshot. Mutually exclusive with `last_article_after`, `last_article_before`, and `updated_after`.
+        example: 24h
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        description: Sort order. `latest` (default) sorts most recently reported first, the unfiltered feed order. `significance` groups events into 3 coarse editorial tiers (`notable`, then `routine`, then `commentary`), most recently reported first within each tier; expect large ties within a tier. A mid-walk `routine`→`notable` escalation may be skipped, since the ordering is a best-effort snapshot. For a broad importance filter, prefer `significance=notable` with the default sort; page 1 is identical. Mutually exclusive with `updated_after` (an unrecognized value, or either sort value combined with `updated_after`, returns 400).
+        example: significance
+        schema:
+          type: string
+      - name: related_to
+        in: query
+        required: false
+        description: Filter to commentary events that comment on or react to the factual event with this `id` (see `related_to` on the response). Unresolvable `id` returns an empty result set, not an error.
+        example: evtrswagsh01
+        schema:
+          type: string
+      - name: include_peripheral
+        in: query
+        required: false
+        description: 'When `true`, widen `company`/`ticker`/`watchlist` matching, and the `company_ids` returned on each event, to companies with a peripheral role (advisor, speaker, or a passing mention) as well. Default `false` restricts matching and `company_ids` to companies with an active-involvement role (subject, acquirer, target, investor, issuer, partner). Does not widen `exchange`, `market`, `domicile`, `index`, `sector` or `listed`: on a factual event those match an active-involvement role; on a commentary event, any role, when a live article in the event is about that company rather than only mentioning it.'
+        schema:
+          type: boolean
+      - name: If-None-Match
+        in: header
+        required: false
+        description: ETag value from a previous response. Returns `304 Not Modified` if data has not changed.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Events retrieved successfully
+          content:
+            application/json:
+              examples:
+                events_list:
+                  value:
+                    events:
+                    - id: evt_volvoq3ma1
+                      title: Volvo AB announces Q3 2026 results
+                      status: active
+                      significance: notable
+                      event_type:
+                        slug: earnings-report
+                        label: Earnings Report
+                        category: earnings
+                      article_count: 3
+                      first_reported_at: '2026-10-22T05:00:00.000Z'
+                      last_article_at: '2026-10-23T09:15:00.000Z'
+                      updated_at: '2026-10-23T09:20:00.000Z'
+                      company_ids:
+                      - uejazctgchj4
+                      story_ids:
+                      - story_volvo_q3
+                      merged_into: null
+                      related_to: null
+                    pagination:
+                      count: 1
+                      next_cursor: null
+              schema:
+                type: object
+                required:
+                - events
+                - pagination
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventSummary'
+                  pagination:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                        example: 1
+                      next_cursor:
+                        type:
+                        - string
+                        - 'null'
+                        description: Opaque cursor to fetch the next page. `null` when there are no more results.
+                        example: IlVtcHByZXRPQVZTWnJrVS4uLiI=
+                  plan_limited:
+                    type: boolean
+                    description: Present and `true` when your plan capped the result to its top-N most recent events. Absent when your plan applies no cap. With `mode=semantic`, present and `true` when your plan's source or age restrictions are in force instead.
+                    example: true
+                  truncated:
+                    type: boolean
+                    description: Only with `mode=semantic`. Present and `true` when the article-match horizon was exhausted, so further matching events exist that this response cannot reach.
+                    example: true
+        '304':
+          description: Not Modified
+        '400':
+          description: Invalid parameter
+          content:
+            application/json:
+              examples:
+                invalid_significance:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/invalid-parameter
+                    title: Invalid parameter
+                    status: 400
+                    detail: 'Unknown significance value(s): not_a_significance. Valid values: notable, routine, commentary'
+                    instance: urn:request:a1b2c3
+                    parameter: significance
+              schema:
+                $ref: '#/components/schemas/problem_details'
+        '401':
+          description: Missing or invalid API key
+          content:
+            application/json:
+              examples:
+                unauthorized:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/auth-invalid
+                    title: Authentication required
+                    status: 401
+                    detail: Missing or invalid API key
+                    instance: urn:request:a1b2c3
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1Events
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+  /api/v1/events/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      description: The event ID, as returned in the `id` field of list responses.
+      example: evt_volvoq3ma1
+      schema:
+        type: string
+    get:
+      summary: Get Event
+      tags:
+      - Events
+      security:
+      - bearer_auth: []
+      description: 'Fetches a single event by ID.
+
+
+        A merged or removed event returns 200 with the minimal tombstone shape (see the list endpoint''s description) rather than 404. The id still resolves; it carries no content. An event with no live member articles at all returns 404. An event whose live members exist but are all outside your plan''s age/source restrictions returns 403 with an upgrade problem, distinct from the plain 404.
+
+
+        Responses are cached with `ETag` and `Cache-Control: private, max-age=300`; send `If-None-Match` to receive a `304 Not Modified`. There is no `Last-Modified` here, for the same reason as `GET /api/v1/events`.'
+      parameters:
+      - name: If-None-Match
+        in: header
+        required: false
+        description: ETag value from a previous response. Returns `304 Not Modified` if the event has not changed.
+        schema:
+          type: string
+      - name: include_peripheral
+        in: query
+        required: false
+        description: When `true`, `company_ids` and `companies[]` also include companies with a peripheral role (advisor, speaker, or a passing mention). Default `false` lists companies with an active-involvement role only (subject, acquirer, target, investor, issuer, partner). `association_tier` is present on every `companies[]` entry regardless.
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: Event retrieved
+          content:
+            application/json:
+              examples:
+                event_detail:
+                  value:
+                    event:
+                      id: evt_volvoq3ma1
+                      title: Volvo AB announces Q3 2026 results
+                      status: active
+                      significance: notable
+                      event_type:
+                        slug: earnings-report
+                        label: Earnings Report
+                        category: earnings
+                      article_count: 3
+                      first_reported_at: '2026-10-22T05:00:00.000Z'
+                      last_article_at: '2026-10-23T09:15:00.000Z'
+                      updated_at: '2026-10-23T09:20:00.000Z'
+                      company_ids:
+                      - uejazctgchj4
+                      story_ids:
+                      - story_volvo_q3
+                      merged_into: null
+                      related_to: null
+                      summary: Volvo AB reported Q3 2026 results, beating analyst expectations on strong truck demand...
+                      article_ids:
+                      - art_abc123def
+                      - art_def456ghi
+                      primary_disclosure_article_id: art_abc123def
+                      member_figures_disagree: false
+                      figure_divergence: null
+                      companies:
+                      - id: uejazctgchj4
+                        name: AB Volvo (Volvo Group)
+                        ticker: VOLV-B
+                        is_primary: true
+                        association_tier: principal
+              schema:
+                type: object
+                required:
+                - event
+                properties:
+                  event:
+                    $ref: '#/components/schemas/EventDetail'
+        '304':
+          description: Not Modified
+        '401':
+          description: Missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/problem_details'
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              examples:
+                not_found:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/not-found
+                    title: Not Found
+                    status: 404
+                    detail: The requested resource could not be found
+                    instance: urn:request:a1b2c3
+              schema:
+                $ref: '#/components/schemas/problem_details'
+        '403':
+          description: Event is outside this plan's access window
+          content:
+            application/json:
+              examples:
+                plan_limit_forbidden:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/plan-limit-exceeded
+                    title: Event not available on your plan
+                    status: 403
+                    detail: This event's coverage falls outside your plan's access window or is restricted to premium sources your plan doesn't include.
+                    instance: urn:request:a1b2c3
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1EventsById
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+components:
+  schemas:
+    EventDetail:
+      allOf:
+      - $ref: '#/components/schemas/EventSummary'
+      - type: object
+        properties:
+          summary:
+            type:
+            - string
+            - 'null'
+            description: Event summary (omitted on a tombstone). Null when no summary has been generated for the event yet.
+            example: Volvo AB reported Q3 2026 results, beating analyst expectations on strong truck demand...
+          article_ids:
+            type: array
+            items:
+              type: string
+            description: IDs of this event's live articles that your plan can fetch, oldest first by publication time (omitted on a tombstone). May be shorter than `article_count` on a plan with age or source restrictions. That gap is not an error.
+            example:
+            - h4mzq918kxwc
+            - q2fnk75dxzmv
+          primary_disclosure_article_id:
+            type:
+            - string
+            - 'null'
+            description: 'The primary disclosure among this event''s live articles your plan can fetch: the earliest one from a primary-disclosure source (wire service, stock exchange feed, PR platform, or government body). Null when the event has none. Always an element of `article_ids`, or null; omitted on a tombstone. A plan with age or source restrictions may see a later official copy of the same disclosure, or null, instead of the true earliest one.'
+            example: h4mzq918kxwc
+          member_figures_disagree:
+            type: boolean
+            description: True when this event's own member articles report divergent values for the same headline figure (e.g. one source reports operating profit as −2.2m, another as −2.4m). A signal that the single consolidated summary hides a source-level disagreement. Omitted on a tombstone.
+            example: false
+          figure_divergence:
+            type:
+            - object
+            - 'null'
+            description: 'Detail behind `member_figures_disagree`: the specific metrics whose values disagree across member articles, with the per-source figures and range. Null when there is no disagreement; omitted on a tombstone.'
+            properties:
+              groups:
+                type: array
+                description: One entry per disagreeing metric.
+                items:
+                  type: object
+                  properties:
+                    concept:
+                      type: string
+                      description: The canonical measure that disagrees
+                      example: operating_profit
+                    basis:
+                      type: string
+                      description: Whether the measure is as-reported or an adjusted/alternative one
+                      example: reported
+                    role:
+                      type: string
+                      description: Whether the figure is an outcome, forecast, or comparative
+                      example: actual
+                    period:
+                      type: string
+                      description: The reporting period the figure covers
+                      example: 2026-Q1
+                    currency:
+                      type: string
+                      description: ISO currency of the figures
+                      example: SEK
+                    labels:
+                      type: array
+                      items:
+                        type: string
+                      description: The source's own wording(s) for the measure
+                      example:
+                      - Rörelseresultatet
+                    min:
+                      type: number
+                      description: Smallest reported value (absolute base units)
+                      example: 313000000.0
+                    max:
+                      type: number
+                      description: Largest reported value (absolute base units)
+                      example: 395000000.0
+                    values:
+                      type: array
+                      description: The reported figure per member article.
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: The reporting article's id
+                            example: h4mzq918kxwc
+                          source:
+                            type:
+                            - string
+                            - 'null'
+                            description: The reporting source's name
+                            example: MFN
+                          normalized_value:
+                            type: number
+                            description: The figure in absolute base units
+                            example: 395000000.0
+                          value:
+                            type: string
+                            description: The figure as originally stated
+                            example: 395 MSEK
+          companies:
+            type: array
+            description: 'The same companies as `company_ids`, with detail per company: name, ticker, primary flag, association tier. Primary company first; omitted on a tombstone.'
+            items:
+              type: object
+              required:
+              - id
+              - name
+              - is_primary
+              - association_tier
+              properties:
+                id:
+                  type: string
+                  description: Unique company identifier
+                  example: uejazctgchj4
+                name:
+                  type: string
+                  description: Company name
+                  example: AB Volvo (Volvo Group)
+                ticker:
+                  type:
+                  - string
+                  - 'null'
+                  description: Primary stock ticker
+                  example: VOLV-B
+                is_primary:
+                  type: boolean
+                  description: Whether this company is the primary subject of the event
+                  example: true
+                association_tier:
+                  type: string
+                  enum:
+                  - principal
+                  - peripheral
+                  description: How the company relates to the event. `principal` (subject, acquirer, target, investor, issuer, partner) is the default set; `peripheral` (advisor, speaker, passing mention) appears only when `include_peripheral=true`. Always present.
+                  example: principal
+    EventSummary:
+      type: object
+      required:
+      - id
+      - status
+      - updated_at
+      description: 'An event: one real-world development, grouping the articles that report it. A `merged` or `removed` event (see `status`) returns only the minimal tombstone fields (`id`, `status`, `merged_into`, `updated_at`). Title, significance, event_type, counts, and every id array are omitted, never null-but-present, so a tombstone carries no content.'
+      properties:
+        id:
+          type: string
+          description: Unique event identifier
+          example: k3n8vdczq1mp
+        title:
+          type: string
+          description: Event title (omitted on a tombstone)
+          example: Volvo AB announces Q3 2026 results
+        status:
+          type: string
+          description: Lifecycle status. `active`/`closed` are live (closed = coverage window lapsed but the event stays visible and can reopen). `merged` = absorbed into another event (see `merged_into`); `removed` = withdrawn from the feed (no live articles remain, or it was found to be incorrect). `merged`/`removed` never appear in the default list and carry only the tombstone fields.
+          enum:
+          - active
+          - closed
+          - merged
+          - removed
+          example: active
+        significance:
+          type: string
+          description: Editorial importance (omitted on a tombstone). `notable` = front-page-worthy; `routine` = factual ledger record; `commentary` = single-article opinion/analysis.
+          enum:
+          - notable
+          - routine
+          - commentary
+          example: notable
+        event_type:
+          type:
+          - object
+          - 'null'
+          description: The kind of event (omitted on a tombstone)
+          properties:
+            slug:
+              type: string
+              example: earnings-report
+            label:
+              type: string
+              example: Earnings Report
+            category:
+              type: string
+              example: earnings
+        article_count:
+          type: integer
+          description: Number of live articles reporting this event (omitted on a tombstone). This is the total count. Your plan's age and source restrictions do not reduce it; use GET on the event to see which of them your plan can fetch.
+          example: 3
+        first_reported_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: 'When this event was first reported (ISO 8601, omitted on a tombstone): the earliest known publication time among this event''s member articles. Falls back to `last_article_at` for ordering when null. This is editorial time, not the time the record reached this API.'
+          example: '2026-10-22T05:00:00.000Z'
+        last_article_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Publication time of the newest article reporting this event (ISO 8601, omitted on a tombstone).
+          example: '2026-10-23T09:15:00.000Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: When this record last changed (ISO 8601). This is the clock incremental sync runs on. Pass your last completed sync time as `updated_after`, drain every page via `pagination.next_cursor`, and only then advance your stored timestamp.
+          example: '2026-10-23T09:20:00.000Z'
+        company_ids:
+          type: array
+          items:
+            type: string
+          description: IDs of companies associated with this event, verified and visible only (omitted on a tombstone). Restricted to companies with an active-involvement role (subject, acquirer, target, investor, issuer, partner) unless `include_peripheral=true`.
+          example:
+          - uejazctgchj4
+        story_ids:
+          type: array
+          items:
+            type: string
+          description: IDs of published stories generated from this event, if any (omitted on a tombstone)
+          example:
+          - 8fzq2rmtnk5c
+        merged_into:
+          type:
+          - string
+          - 'null'
+          description: ID of the surviving event this one was merged into. Present only when `status` is `merged`; null for every other status, including `removed` and on some older merged events.
+          example: v3xdq8fmz1kn
+        related_to:
+          type:
+          - string
+          - 'null'
+          description: 'Commentary-only metadata: the `id` of the factual event this commentary event comments on or reacts to, when the piece is about a specific factual event. Always null for non-commentary events, and often null for commentary events too (the piece may not be about a specific event). Filter with `related_to=<id>` to find commentary reacting to a given event.'
+          example: v3xdq8fmz1kn
+    problem_details:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      - detail
+      - instance
+      properties:
+        type:
+          type: string
+          description: URI that identifies the problem type
+        title:
+          type: string
+          description: Short human-readable summary
+        status:
+          type: integer
+          description: HTTP status code
+        detail:
+          type: string
+          description: Human-readable explanation
+        instance:
+          type: string
+          description: URI that identifies the specific occurrence
+  securitySchemes:
+    bearer_auth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+      description: API Key authentication using Bearer token
+x-refined-from:
+- nordic-financial-news-openapi-original.yml
+- nordic-financial-news-openapi.yml

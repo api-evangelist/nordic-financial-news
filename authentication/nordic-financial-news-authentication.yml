@@ -1,0 +1,14 @@
+generated: '2026-10-09'
+method: derived
+source: openapi/nordic-financial-news-openapi.yml
+summary:
+  types:
+  - http
+schemes:
+- name: bearer_auth
+  type: http
+  scheme: bearer
+  bearerFormat: API Key
+  description: API Key authentication using Bearer token
+  sources:
+  - openapi/nordic-financial-news-openapi.yml

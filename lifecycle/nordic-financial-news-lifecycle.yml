@@ -1,0 +1,7 @@
+generated: '2026-10-09'
+method: searched
+source: https://docs.nordicfinancialnews.com/changelog.md
+versioning: URL path version /api/v1; contract info.version v1.0
+deprecation: null
+status_page: https://status.nordicfinancialnews.com/
+changelog: https://docs.nordicfinancialnews.com/changelog

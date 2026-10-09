@@ -1,0 +1,178 @@
+openapi: 3.2.0
+info:
+  title: Nordic Financial News Meta API
+  version: v1.0
+  contact:
+    name: API Support
+    email: hello@nordicfinancialnews.com
+  description: 'Operations tagged Meta across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://nordicfinancialnews.com
+  description: Production server
+tags:
+- name: Meta
+paths:
+  /api/v1/meta:
+    get:
+      summary: Get API metadata
+      tags:
+      - Meta
+      security:
+      - bearer_auth: []
+      description: Returns API metadata including version, capabilities, supported fields, content types, and rate limit policy.
+      responses:
+        '200':
+          description: API metadata retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    example: v1
+                  capabilities:
+                    type: array
+                    items:
+                      type: string
+                  supported_fields:
+                    type: object
+                    properties:
+                      articles:
+                        type: array
+                        items:
+                          type: string
+                      stories:
+                        type: array
+                        items:
+                          type: string
+                      events:
+                        type: array
+                        items:
+                          type: string
+                      event_types:
+                        type: array
+                        items:
+                          type: string
+                      calendar_events:
+                        type: array
+                        items:
+                          type: string
+                      categories:
+                        type: array
+                        items:
+                          type: string
+                      companies:
+                        type: array
+                        items:
+                          type: string
+                      countries:
+                        type: array
+                        items:
+                          type: string
+                      exchanges:
+                        type: array
+                        items:
+                          type: string
+                      indices:
+                        type: array
+                        items:
+                          type: string
+                      sources:
+                        type: array
+                        items:
+                          type: string
+                  search:
+                    type: object
+                    properties:
+                      endpoint:
+                        type: string
+                      parameters:
+                        type: array
+                        items:
+                          type: string
+                      searchable_types:
+                        type: array
+                        items:
+                          type: string
+                      per_resource:
+                        type: array
+                        items:
+                          type: string
+                  content_types:
+                    type: array
+                    items:
+                      type: string
+                  sectors:
+                    type: array
+                    items:
+                      type: string
+                  rate_limit_policy:
+                    type: string
+                  supported_countries:
+                    type: array
+                    items:
+                      type: string
+                  supported_scopes:
+                    type: array
+                    items:
+                      type: string
+                required:
+                - version
+                - capabilities
+                - supported_fields
+                - content_types
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              examples:
+                unauthorized:
+                  value:
+                    type: https://docs.nordicfinancialnews.com/problems/auth-invalid
+                    title: Unauthorized
+                    status: 401
+                    detail: Missing or invalid API key
+                    instance: urn:request:abc123
+              schema:
+                $ref: '#/components/schemas/problem_details'
+      operationId: getApiV1Meta
+      x-operation-id-source: derived
+    servers:
+    - url: https://nordicfinancialnews.com
+      description: Production server
+components:
+  schemas:
+    problem_details:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      - detail
+      - instance
+      properties:
+        type:
+          type: string
+          description: URI that identifies the problem type
+        title:
+          type: string
+          description: Short human-readable summary
+        status:
+          type: integer
+          description: HTTP status code
+        detail:
+          type: string
+          description: Human-readable explanation
+        instance:
+          type: string
+          description: URI that identifies the specific occurrence
+  securitySchemes:
+    bearer_auth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+      description: API Key authentication using Bearer token
+x-refined-from:
+- nordic-financial-news-openapi-original.yml
+- nordic-financial-news-openapi.yml

@@ -1,0 +1,120 @@
+generated: '2026-10-09'
+method: derived
+source: the pre-flight dossier, apis.yml pointers, spec servers, well-known, vendors -- nothing fetched here
+generator: derive-hosts.py
+summary:
+  hosts: 7
+  own: 4
+  other_domain: 1
+  platform: 2
+  roles:
+  - api
+  - docs
+  - other
+  - source
+  - status
+  - website
+hosts:
+- host: api.nordicfinancialnews.com
+  found_by:
+  - contract-discovery
+  types: []
+  serves: []
+  registrable_domain: nordicfinancialnews.com
+  role: api
+  relation: own
+- host: docs.nordicfinancialnews.com
+  found_by:
+  - pointer
+  - apis[]
+  - probed
+  - site-links
+  - docs-index
+  - contract-discovery
+  - well-known
+  - vendor-detect
+  types:
+  - Documentation
+  - APIReference
+  - GettingStarted
+  - ChangeLog
+  serves:
+  - docs
+  - documentation
+  - hosting
+  vendor: mintlify
+  registrable_domain: nordicfinancialnews.com
+  role: docs
+  relation: own
+- host: github.com
+  found_by:
+  - pointer
+  types:
+  - GitHubOrganization
+  serves: []
+  registrable_domain: github.com
+  role: source
+  relation: platform
+- host: mintlify.com
+  found_by:
+  - docs-index
+  types: []
+  serves:
+  - docs
+  registrable_domain: mintlify.com
+  role: other
+  relation: other-domain
+- host: nordicfinancialnews.com
+  found_by:
+  - pointer
+  - apis[]
+  - probed
+  - docs-index
+  - spec-found
+  - contract-discovery
+  - well-known
+  - vendor-detect
+  types:
+  - Newsroom
+  - Website
+  - Pricing
+  - SignUp
+  - Login
+  - TermsOfService
+  - PrivacyPolicy
+  - Blog
+  - Support
+  serves:
+  - api
+  - docs
+  - spec
+  - cdn
+  vendor: cloudflare
+  registrable_domain: nordicfinancialnews.com
+  role: website
+  relation: own
+- host: status.nordicfinancialnews.com
+  found_by:
+  - pointer
+  - probed
+  - site-links
+  - contract-discovery
+  - well-known
+  - vendor-detect
+  types:
+  - StatusPage
+  serves:
+  - status-page
+  vendor: betterstack
+  registrable_domain: nordicfinancialnews.com
+  role: status
+  relation: own
+- host: x.com
+  found_by:
+  - pointer
+  types:
+  - X
+  serves: []
+  registrable_domain: x.com
+  role: other
+  relation: platform

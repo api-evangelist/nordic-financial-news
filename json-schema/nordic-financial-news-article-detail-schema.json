@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/nordic-financial-news/main/json-schema/nordic-financial-news-article-detail-schema.json",
+  "title": "ArticleDetail",
+  "x-generated": "2026-10-09",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/nordic-financial-news-openapi.yml#/components/schemas/ArticleDetail",
+  "allOf": [
+    {
+      "$ref": "#/$defs/ArticleSummary"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "source_title": {
+          "type": "string",
+          "description": "Original article title in source language"
+        },
+        "summary": {
+          "type": "string",
+          "description": "AI-generated English summary of the article: a machine translation and paraphrase of the source text, not verbatim."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the article was last updated (ISO 8601)"
+        },
+        "story_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "IDs of published stories covering this article, if any"
+        },
+        "companies": {
+          "type": "array",
+          "description": "Companies mentioned in this article, primary company first",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "is_primary",
+              "association_tier"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique company identifier"
+              },
+              "name": {
+                "type": "string",
+                "description": "Company name"
+              },
+              "ticker": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Primary stock ticker"
+              },
+              "is_primary": {
+                "type": "boolean",
+                "description": "Whether this company is the primary subject of the article"
+              },
+              "association_tier": {
+                "type": "string",
+                "enum": [
+                  "principal",
+                  "peripheral"
+                ],
+                "description": "How the company relates to the article. `principal` (subject, partner, investor, competitor) is the default set; `peripheral` (source, advisor, passing mention) appears only when `include_peripheral=true`. Always present."
+              }
+            }
+          }
+        },
+        "key_points": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Key points from the article. Machine-generated English paraphrases of statements in the source article, not verbatim quotations."
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "ArticleSummary": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "published_at",
+        "updated_at",
+        "article_url",
+        "content_type",
+        "category",
+        "source",
+        "company_ids",
+        "country"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique article identifier"
+        },
+        "title": {
+          "type": "string",
+          "description": "Article title in English. Machine-translated when the source article is not in English."
+        },
+        "article_url": {
+          "type": "string",
+          "description": "Link to the original article"
+        },
+        "content_type": {
+          "type": "string",
+          "description": "Type of article content",
+          "enum": [
+            "news",
+            "analysis",
+            "press_release",
+            "market_commentary",
+            "market_news",
+            "trading_halt",
+            "trading_event",
+            "other"
+          ]
+        },
+        "published_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the article was published by its source (ISO 8601). This is editorial time, not the time the article reached this API. Use it to filter by when news happened, never to track what is new to you."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When this record last changed (ISO 8601). This is the clock incremental sync runs on. It only ever moves forward, unlike published_at. To sync: pass your last completed sync time as `updated_after`, drain every page via `pagination.next_cursor`, and only then advance your stored timestamp."
+        },
+        "category": {
+          "type": "object",
+          "description": "Article category",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            }
+          }
+        },
+        "source": {
+          "type": "object",
+          "description": "The news source that published this article",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Unique source identifier"
+            },
+            "name": {
+              "type": "string"
+            },
+            "domain": {
+              "type": "string"
+            },
+            "source_type": {
+              "type": "string",
+              "enum": [
+                "news_publication",
+                "wire_service",
+                "press_release",
+                "government",
+                "trade_publication",
+                "blog",
+                "stock_exchange",
+                "research"
+              ]
+            }
+          }
+        },
+        "company_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "IDs of companies mentioned in the article"
+        },
+        "country": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Country code (ISO 3166-1 alpha-2)"
+        },
+        "event_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "ID of the event this article belongs to. Null when the article has not been assigned to an event yet. An event that has since been merged or removed still answers `GET /events/{id}` with a tombstone rather than a 404."
+        }
+      }
+    }
+  }
+}
