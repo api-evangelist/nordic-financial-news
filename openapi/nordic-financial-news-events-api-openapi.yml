@@ -2,10 +2,10 @@ openapi: 3.2.0
 info:
   title: Nordic Financial News Events API
   version: v1.0
+  description: REST API for Nordic financial news.
   contact:
     name: API Support
     email: hello@nordicfinancialnews.com
-  description: 'Operations tagged Events across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://nordicfinancialnews.com
   description: Production server
@@ -345,9 +345,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1Events
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
   /api/v1/events/{id}:
     parameters:
     - name: id
@@ -468,9 +465,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1EventsById
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
 components:
   schemas:
     EventDetail:
@@ -609,6 +603,30 @@ components:
                   - peripheral
                   description: How the company relates to the event. `principal` (subject, acquirer, target, investor, issuer, partner) is the default set; `peripheral` (advisor, speaker, passing mention) appears only when `include_peripheral=true`. Always present.
                   example: principal
+    problem_details:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      - detail
+      - instance
+      properties:
+        type:
+          type: string
+          description: URI that identifies the problem type
+        title:
+          type: string
+          description: Short human-readable summary
+        status:
+          type: integer
+          description: HTTP status code
+        detail:
+          type: string
+          description: Human-readable explanation
+        instance:
+          type: string
+          description: URI that identifies the specific occurrence
     EventSummary:
       type: object
       required:
@@ -706,36 +724,9 @@ components:
           - 'null'
           description: 'Commentary-only metadata: the `id` of the factual event this commentary event comments on or reacts to, when the piece is about a specific factual event. Always null for non-commentary events, and often null for commentary events too (the piece may not be about a specific event). Filter with `related_to=<id>` to find commentary reacting to a given event.'
           example: v3xdq8fmz1kn
-    problem_details:
-      type: object
-      required:
-      - type
-      - title
-      - status
-      - detail
-      - instance
-      properties:
-        type:
-          type: string
-          description: URI that identifies the problem type
-        title:
-          type: string
-          description: Short human-readable summary
-        status:
-          type: integer
-          description: HTTP status code
-        detail:
-          type: string
-          description: Human-readable explanation
-        instance:
-          type: string
-          description: URI that identifies the specific occurrence
   securitySchemes:
     bearer_auth:
       type: http
       scheme: bearer
       bearerFormat: API Key
       description: API Key authentication using Bearer token
-x-refined-from:
-- nordic-financial-news-openapi-original.yml
-- nordic-financial-news-openapi.yml

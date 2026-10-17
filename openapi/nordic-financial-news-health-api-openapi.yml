@@ -2,10 +2,10 @@ openapi: 3.2.0
 info:
   title: Nordic Financial News Health API
   version: v1.0
+  description: REST API for Nordic financial news.
   contact:
     name: API Support
     email: hello@nordicfinancialnews.com
-  description: 'Operations tagged Health across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://nordicfinancialnews.com
   description: Production server
@@ -34,9 +34,6 @@ paths:
                 - status
       operationId: getApiV1Health
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
 components:
   securitySchemes:
     bearer_auth:
@@ -44,6 +41,3 @@ components:
       scheme: bearer
       bearerFormat: API Key
       description: API Key authentication using Bearer token
-x-refined-from:
-- nordic-financial-news-openapi-original.yml
-- nordic-financial-news-openapi.yml

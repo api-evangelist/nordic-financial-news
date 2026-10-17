@@ -2,10 +2,10 @@ openapi: 3.2.0
 info:
   title: Nordic Financial News Indices API
   version: v1.0
+  description: REST API for Nordic financial news.
   contact:
     name: API Support
     email: hello@nordicfinancialnews.com
-  description: 'Operations tagged Indices across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://nordicfinancialnews.com
   description: Production server
@@ -113,9 +113,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1Indices
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
   /api/v1/indices/{identifier}:
     parameters:
     - name: identifier
@@ -174,9 +171,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1IndicesByIdentifier
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
   /api/v1/indices/{identifier}/companies:
     parameters:
     - name: identifier
@@ -259,11 +253,47 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1IndicesByIdentifierCompanies
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
 components:
   schemas:
+    IndexDetail:
+      allOf:
+      - $ref: '#/components/schemas/IndexSummary'
+      - type: object
+        properties:
+          description:
+            type:
+            - string
+            - 'null'
+            description: Index description
+            example: The 30 most-traded stocks on Nasdaq Stockholm
+          companies_count:
+            type: integer
+            description: Number of distinct companies in this index (may be less than constituents when a company has multiple share classes)
+            example: 30
+    problem_details:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      - detail
+      - instance
+      properties:
+        type:
+          type: string
+          description: URI that identifies the problem type
+        title:
+          type: string
+          description: Short human-readable summary
+        status:
+          type: integer
+          description: HTTP status code
+        detail:
+          type: string
+          description: Human-readable explanation
+        instance:
+          type: string
+          description: URI that identifies the specific occurrence
     IndexSummary:
       type: object
       required:
@@ -370,51 +400,9 @@ components:
                 description: ISO 10383 Market Identifier Code of this exchange
                 example: XSTO
           example: []
-    problem_details:
-      type: object
-      required:
-      - type
-      - title
-      - status
-      - detail
-      - instance
-      properties:
-        type:
-          type: string
-          description: URI that identifies the problem type
-        title:
-          type: string
-          description: Short human-readable summary
-        status:
-          type: integer
-          description: HTTP status code
-        detail:
-          type: string
-          description: Human-readable explanation
-        instance:
-          type: string
-          description: URI that identifies the specific occurrence
-    IndexDetail:
-      allOf:
-      - $ref: '#/components/schemas/IndexSummary'
-      - type: object
-        properties:
-          description:
-            type:
-            - string
-            - 'null'
-            description: Index description
-            example: The 30 most-traded stocks on Nasdaq Stockholm
-          companies_count:
-            type: integer
-            description: Number of distinct companies in this index (may be less than constituents when a company has multiple share classes)
-            example: 30
   securitySchemes:
     bearer_auth:
       type: http
       scheme: bearer
       bearerFormat: API Key
       description: API Key authentication using Bearer token
-x-refined-from:
-- nordic-financial-news-openapi-original.yml
-- nordic-financial-news-openapi.yml

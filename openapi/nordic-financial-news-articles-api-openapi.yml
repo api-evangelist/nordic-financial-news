@@ -2,10 +2,10 @@ openapi: 3.2.0
 info:
   title: Nordic Financial News Articles API
   version: v1.0
+  description: REST API for Nordic financial news.
   contact:
     name: API Support
     email: hello@nordicfinancialnews.com
-  description: 'Operations tagged Articles across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://nordicfinancialnews.com
   description: Production server
@@ -89,9 +89,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1ArticlesById
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
   /api/v1/articles:
     get:
       summary: List Articles
@@ -378,9 +375,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1Articles
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
 components:
   schemas:
     ArticleSummary:
@@ -592,6 +586,3 @@ components:
       scheme: bearer
       bearerFormat: API Key
       description: API Key authentication using Bearer token
-x-refined-from:
-- nordic-financial-news-openapi-original.yml
-- nordic-financial-news-openapi.yml

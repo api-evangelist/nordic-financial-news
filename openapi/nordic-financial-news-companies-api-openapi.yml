@@ -2,10 +2,10 @@ openapi: 3.2.0
 info:
   title: Nordic Financial News Companies API
   version: v1.0
+  description: REST API for Nordic financial news.
   contact:
     name: API Support
     email: hello@nordicfinancialnews.com
-  description: 'Operations tagged Companies across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://nordicfinancialnews.com
   description: Production server
@@ -209,9 +209,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1Companies
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
   /api/v1/companies/{identifier}:
     parameters:
     - name: identifier
@@ -319,9 +316,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1CompaniesByIdentifier
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
   /api/v1/companies/{identifier}/articles:
     parameters:
     - name: identifier
@@ -520,9 +514,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1CompaniesByIdentifierArticles
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
   /api/v1/companies/{identifier}/stories:
     parameters:
     - name: identifier
@@ -691,9 +682,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1CompaniesByIdentifierStories
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
   /api/v1/companies/{identifier}/events:
     parameters:
     - name: identifier
@@ -910,9 +898,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1CompaniesByIdentifierEvents
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
   /api/v1/companies/{identifier}/calendar_events:
     parameters:
     - name: identifier
@@ -1071,139 +1056,8 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1CompaniesByIdentifierCalendarEvents
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
 components:
   schemas:
-    ArticleSummary:
-      type: object
-      required:
-      - id
-      - title
-      - published_at
-      - updated_at
-      - article_url
-      - content_type
-      - category
-      - source
-      - company_ids
-      - country
-      properties:
-        id:
-          type: string
-          description: Unique article identifier
-          example: art_abc123def
-        title:
-          type: string
-          description: Article title in English. Machine-translated when the source article is not in English.
-          example: Volvo Reports Record Q3 Earnings
-        article_url:
-          type: string
-          description: Link to the original article
-          example: https://di.se/articles/volvo-q3-2026
-        content_type:
-          type: string
-          description: Type of article content
-          example: news
-          enum:
-          - news
-          - analysis
-          - press_release
-          - market_commentary
-          - market_news
-          - trading_halt
-          - trading_event
-          - other
-        published_at:
-          type: string
-          format: date-time
-          description: When the article was published by its source (ISO 8601). This is editorial time, not the time the article reached this API. Use it to filter by when news happened, never to track what is new to you.
-          example: '2026-03-15T09:30:00.000Z'
-        updated_at:
-          type: string
-          format: date-time
-          description: 'When this record last changed (ISO 8601). This is the clock incremental sync runs on. It only ever moves forward, unlike published_at. To sync: pass your last completed sync time as `updated_after`, drain every page via `pagination.next_cursor`, and only then advance your stored timestamp.'
-          example: '2026-03-15T09:35:00.000Z'
-        category:
-          type: object
-          description: Article category
-          properties:
-            id:
-              type: string
-              example: cat_earnings1
-            name:
-              type: string
-              example: Earnings & Financial Results
-        source:
-          type: object
-          description: The news source that published this article
-          properties:
-            id:
-              type: string
-              description: Unique source identifier
-              example: abc123def456
-            name:
-              type: string
-              example: Dagens Industri
-            domain:
-              type: string
-              example: di.se
-            source_type:
-              type: string
-              example: news_publication
-              enum:
-              - news_publication
-              - wire_service
-              - press_release
-              - government
-              - trade_publication
-              - blog
-              - stock_exchange
-              - research
-        company_ids:
-          type: array
-          items:
-            type: string
-          description: IDs of companies mentioned in the article
-          example:
-          - uejazctgchj4
-        country:
-          type:
-          - string
-          - 'null'
-          description: Country code (ISO 3166-1 alpha-2)
-          example: SE
-        event_id:
-          type:
-          - string
-          - 'null'
-          description: ID of the event this article belongs to. Null when the article has not been assigned to an event yet. An event that has since been merged or removed still answers `GET /events/{id}` with a tombstone rather than a 404.
-          example: 8fzq2rmtnk5c
-    problem_details:
-      type: object
-      required:
-      - type
-      - title
-      - status
-      - detail
-      - instance
-      properties:
-        type:
-          type: string
-          description: URI that identifies the problem type
-        title:
-          type: string
-          description: Short human-readable summary
-        status:
-          type: integer
-          description: HTTP status code
-        detail:
-          type: string
-          description: Human-readable explanation
-        instance:
-          type: string
-          description: URI that identifies the specific occurrence
     CompanyDetail:
       allOf:
       - $ref: '#/components/schemas/CompanySummary'
@@ -1413,6 +1267,30 @@ components:
             type: string
             format: date-time
             description: When the company was last updated (ISO 8601)
+    problem_details:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      - detail
+      - instance
+      properties:
+        type:
+          type: string
+          description: URI that identifies the problem type
+        title:
+          type: string
+          description: Short human-readable summary
+        status:
+          type: integer
+          description: HTTP status code
+        detail:
+          type: string
+          description: Human-readable explanation
+        instance:
+          type: string
+          description: URI that identifies the specific occurrence
     StorySummary:
       type: object
       required:
@@ -1677,77 +1555,110 @@ components:
           format: date-time
           description: When the event was last updated (ISO 8601). Use with `updated_after` for polling
           example: '2026-03-01T09:00:00.000Z'
-    CompanySummary:
+    ArticleSummary:
       type: object
       required:
       - id
-      - name
-      - slug
-      - former_tickers
-      - also_listed_on
+      - title
+      - published_at
+      - updated_at
+      - article_url
+      - content_type
+      - category
+      - source
+      - company_ids
+      - country
       properties:
         id:
           type: string
-          description: Unique company identifier
-          example: w55fcw3pbg3p
-        name:
+          description: Unique article identifier
+          example: art_abc123def
+        title:
           type: string
-          description: Company name
-          example: Volvo Car AB
-        slug:
+          description: Article title in English. Machine-translated when the source article is not in English.
+          example: Volvo Reports Record Q3 Earnings
+        article_url:
           type: string
-          description: URL-friendly company name
-          example: VOLCAR-B
-        ticker:
-          type:
-          - string
-          - 'null'
-          description: Primary stock ticker (null if unlisted)
-          example: VOLCAR-B
-        former_tickers:
-          type: array
-          items:
-            type: string
-          description: Tickers the company was formerly listed under, from delisted or renamed listings, excluding any that are still a current ticker. Always present; empty when none. The ticker filter resolves former tickers as well as the current one, so a match on an old ticker still returns the company; this field tells you the ticker you searched by is historical.
-          example:
-          - VOLV
-        is_active:
-          type: boolean
-          description: Whether the company is currently active/operating
-          example: true
-        exchange:
-          type:
-          - object
-          - 'null'
-          description: Primary exchange where the company is listed
+          description: Link to the original article
+          example: https://di.se/articles/volvo-q3-2026
+        content_type:
+          type: string
+          description: Type of article content
+          example: news
+          enum:
+          - news
+          - analysis
+          - press_release
+          - market_commentary
+          - market_news
+          - trading_halt
+          - trading_event
+          - other
+        published_at:
+          type: string
+          format: date-time
+          description: When the article was published by its source (ISO 8601). This is editorial time, not the time the article reached this API. Use it to filter by when news happened, never to track what is new to you.
+          example: '2026-03-15T09:30:00.000Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: 'When this record last changed (ISO 8601). This is the clock incremental sync runs on. It only ever moves forward, unlike published_at. To sync: pass your last completed sync time as `updated_after`, drain every page via `pagination.next_cursor`, and only then advance your stored timestamp.'
+          example: '2026-03-15T09:35:00.000Z'
+        category:
+          type: object
+          description: Article category
           properties:
             id:
               type: string
-              description: Exchange identifier
+              example: cat_earnings1
             name:
               type: string
-              description: Exchange display name
-            mic_code:
+              example: Earnings & Financial Results
+        source:
+          type: object
+          description: The news source that published this article
+          properties:
+            id:
               type: string
-              description: ISO 10383 Market Identifier Code
-        also_listed_on:
+              description: Unique source identifier
+              example: abc123def456
+            name:
+              type: string
+              example: Dagens Industri
+            domain:
+              type: string
+              example: di.se
+            source_type:
+              type: string
+              example: news_publication
+              enum:
+              - news_publication
+              - wire_service
+              - press_release
+              - government
+              - trade_publication
+              - blog
+              - stock_exchange
+              - research
+        company_ids:
           type: array
-          description: 'The company''s other active listings, excluding the primary listing above: cross-listings on other exchanges and additional share classes (which may be on the same exchange). Always present; empty when the company is single-listed or unlisted. The row''s ticker/exchange fields are the primary listing only. Company detail stock_listings is the authoritative full set.'
           items:
-            type: object
-            required:
-            - ticker
-            - mic_code
-            properties:
-              ticker:
-                type: string
-                description: Ticker on this secondary exchange
-                example: VOLCAR-B
-              mic_code:
-                type: string
-                description: ISO 10383 Market Identifier Code of this exchange
-                example: XSTO
-          example: []
+            type: string
+          description: IDs of companies mentioned in the article
+          example:
+          - uejazctgchj4
+        country:
+          type:
+          - string
+          - 'null'
+          description: Country code (ISO 3166-1 alpha-2)
+          example: SE
+        event_id:
+          type:
+          - string
+          - 'null'
+          description: ID of the event this article belongs to. Null when the article has not been assigned to an event yet. An event that has since been merged or removed still answers `GET /events/{id}` with a tombstone rather than a 404.
+          example: 8fzq2rmtnk5c
     EventSummary:
       type: object
       required:
@@ -1845,12 +1756,80 @@ components:
           - 'null'
           description: 'Commentary-only metadata: the `id` of the factual event this commentary event comments on or reacts to, when the piece is about a specific factual event. Always null for non-commentary events, and often null for commentary events too (the piece may not be about a specific event). Filter with `related_to=<id>` to find commentary reacting to a given event.'
           example: v3xdq8fmz1kn
+    CompanySummary:
+      type: object
+      required:
+      - id
+      - name
+      - slug
+      - former_tickers
+      - also_listed_on
+      properties:
+        id:
+          type: string
+          description: Unique company identifier
+          example: w55fcw3pbg3p
+        name:
+          type: string
+          description: Company name
+          example: Volvo Car AB
+        slug:
+          type: string
+          description: URL-friendly company name
+          example: VOLCAR-B
+        ticker:
+          type:
+          - string
+          - 'null'
+          description: Primary stock ticker (null if unlisted)
+          example: VOLCAR-B
+        former_tickers:
+          type: array
+          items:
+            type: string
+          description: Tickers the company was formerly listed under, from delisted or renamed listings, excluding any that are still a current ticker. Always present; empty when none. The ticker filter resolves former tickers as well as the current one, so a match on an old ticker still returns the company; this field tells you the ticker you searched by is historical.
+          example:
+          - VOLV
+        is_active:
+          type: boolean
+          description: Whether the company is currently active/operating
+          example: true
+        exchange:
+          type:
+          - object
+          - 'null'
+          description: Primary exchange where the company is listed
+          properties:
+            id:
+              type: string
+              description: Exchange identifier
+            name:
+              type: string
+              description: Exchange display name
+            mic_code:
+              type: string
+              description: ISO 10383 Market Identifier Code
+        also_listed_on:
+          type: array
+          description: 'The company''s other active listings, excluding the primary listing above: cross-listings on other exchanges and additional share classes (which may be on the same exchange). Always present; empty when the company is single-listed or unlisted. The row''s ticker/exchange fields are the primary listing only. Company detail stock_listings is the authoritative full set.'
+          items:
+            type: object
+            required:
+            - ticker
+            - mic_code
+            properties:
+              ticker:
+                type: string
+                description: Ticker on this secondary exchange
+                example: VOLCAR-B
+              mic_code:
+                type: string
+                description: ISO 10383 Market Identifier Code of this exchange
+                example: XSTO
+          example: []
   securitySchemes:
     bearer_auth:
       type: http
       scheme: bearer
       bearerFormat: API Key
       description: API Key authentication using Bearer token
-x-refined-from:
-- nordic-financial-news-openapi-original.yml
-- nordic-financial-news-openapi.yml

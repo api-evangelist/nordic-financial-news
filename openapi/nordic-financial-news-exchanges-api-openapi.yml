@@ -2,10 +2,10 @@ openapi: 3.2.0
 info:
   title: Nordic Financial News Exchanges API
   version: v1.0
+  description: REST API for Nordic financial news.
   contact:
     name: API Support
     email: hello@nordicfinancialnews.com
-  description: 'Operations tagged Exchanges across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://nordicfinancialnews.com
   description: Production server
@@ -113,9 +113,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1Exchanges
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
   /api/v1/exchanges/{identifier}:
     parameters:
     - name: identifier
@@ -174,9 +171,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1ExchangesByIdentifier
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
   /api/v1/exchanges/{identifier}/companies:
     parameters:
     - name: identifier
@@ -259,9 +253,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1ExchangesByIdentifierCompanies
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
 components:
   schemas:
     CompanySummary:
@@ -335,52 +326,6 @@ components:
                 description: ISO 10383 Market Identifier Code of this exchange
                 example: XSTO
           example: []
-    ExchangeDetail:
-      allOf:
-      - $ref: '#/components/schemas/ExchangeSummary'
-      - type: object
-        properties:
-          operating_mic_code:
-            type:
-            - string
-            - 'null'
-            description: Parent operating MIC code (for segment exchanges)
-            example: XSTO
-          currency:
-            type:
-            - string
-            - 'null'
-            description: Primary trading currency (ISO 4217)
-            example: SEK
-          ticker_suffix:
-            type:
-            - string
-            - 'null'
-            description: Ticker suffix used for this exchange
-            example: ST
-          timezone:
-            type:
-            - string
-            - 'null'
-            description: Exchange timezone
-            example: Europe/Stockholm
-          city:
-            type:
-            - string
-            - 'null'
-            description: City where the exchange is located
-          indices:
-            type: array
-            description: Stock indices on this exchange
-            items:
-              type: object
-              properties:
-                id:
-                  type: string
-                name:
-                  type: string
-                symbol:
-                  type: string
     problem_details:
       type: object
       required:
@@ -440,12 +385,55 @@ components:
               type: string
             iso2_code:
               type: string
+    ExchangeDetail:
+      allOf:
+      - $ref: '#/components/schemas/ExchangeSummary'
+      - type: object
+        properties:
+          operating_mic_code:
+            type:
+            - string
+            - 'null'
+            description: Parent operating MIC code (for segment exchanges)
+            example: XSTO
+          currency:
+            type:
+            - string
+            - 'null'
+            description: Primary trading currency (ISO 4217)
+            example: SEK
+          ticker_suffix:
+            type:
+            - string
+            - 'null'
+            description: Ticker suffix used for this exchange
+            example: ST
+          timezone:
+            type:
+            - string
+            - 'null'
+            description: Exchange timezone
+            example: Europe/Stockholm
+          city:
+            type:
+            - string
+            - 'null'
+            description: City where the exchange is located
+          indices:
+            type: array
+            description: Stock indices on this exchange
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+                symbol:
+                  type: string
   securitySchemes:
     bearer_auth:
       type: http
       scheme: bearer
       bearerFormat: API Key
       description: API Key authentication using Bearer token
-x-refined-from:
-- nordic-financial-news-openapi-original.yml
-- nordic-financial-news-openapi.yml

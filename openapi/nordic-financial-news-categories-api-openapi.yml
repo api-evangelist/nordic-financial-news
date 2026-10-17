@@ -2,10 +2,10 @@ openapi: 3.2.0
 info:
   title: Nordic Financial News Categories API
   version: v1.0
+  description: REST API for Nordic financial news.
   contact:
     name: API Support
     email: hello@nordicfinancialnews.com
-  description: 'Operations tagged Categories across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://nordicfinancialnews.com
   description: Production server
@@ -119,25 +119,8 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1Categories
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
 components:
   schemas:
-    CategorySummary:
-      type: object
-      required:
-      - id
-      - name
-      properties:
-        id:
-          type: string
-          description: Unique category identifier
-          example: cat_business12
-        name:
-          type: string
-          description: Category display name
-          example: Earnings & Financial Results
     problem_details:
       type: object
       required:
@@ -162,12 +145,23 @@ components:
         instance:
           type: string
           description: URI that identifies the specific occurrence
+    CategorySummary:
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: string
+          description: Unique category identifier
+          example: cat_business12
+        name:
+          type: string
+          description: Category display name
+          example: Earnings & Financial Results
   securitySchemes:
     bearer_auth:
       type: http
       scheme: bearer
       bearerFormat: API Key
       description: API Key authentication using Bearer token
-x-refined-from:
-- nordic-financial-news-openapi-original.yml
-- nordic-financial-news-openapi.yml

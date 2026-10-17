@@ -2,10 +2,10 @@ openapi: 3.2.0
 info:
   title: Nordic Financial News Calendar Events API
   version: v1.0
+  description: REST API for Nordic financial news.
   contact:
     name: API Support
     email: hello@nordicfinancialnews.com
-  description: 'Operations tagged Calendar Events across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://nordicfinancialnews.com
   description: Production server
@@ -347,9 +347,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1CalendarEvents
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
   /api/v1/calendar_events/{id}:
     parameters:
     - name: id
@@ -464,14 +461,8 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1CalendarEventsById
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
 components:
   schemas:
-    CalendarEventDetail:
-      allOf:
-      - $ref: '#/components/schemas/CalendarEventSummary'
     CalendarEventSummary:
       type: object
       required:
@@ -665,6 +656,9 @@ components:
           format: date-time
           description: When the event was last updated (ISO 8601). Use with `updated_after` for polling
           example: '2026-03-01T09:00:00.000Z'
+    CalendarEventDetail:
+      allOf:
+      - $ref: '#/components/schemas/CalendarEventSummary'
     problem_details:
       type: object
       required:
@@ -695,6 +689,3 @@ components:
       scheme: bearer
       bearerFormat: API Key
       description: API Key authentication using Bearer token
-x-refined-from:
-- nordic-financial-news-openapi-original.yml
-- nordic-financial-news-openapi.yml

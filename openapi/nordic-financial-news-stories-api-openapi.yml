@@ -2,10 +2,10 @@ openapi: 3.2.0
 info:
   title: Nordic Financial News Stories API
   version: v1.0
+  description: REST API for Nordic financial news.
   contact:
     name: API Support
     email: hello@nordicfinancialnews.com
-  description: 'Operations tagged Stories across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://nordicfinancialnews.com
   description: Production server
@@ -260,9 +260,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1Stories
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
   /api/v1/stories/{id}:
     get:
       summary: Get Story Details
@@ -313,9 +310,6 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1StoriesById
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
 components:
   schemas:
     StoryDetail:
@@ -357,6 +351,30 @@ components:
             - id: uejazctgchj4
               name: AB Volvo (Volvo Group)
               ticker: VOLV-B
+    problem_details:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      - detail
+      - instance
+      properties:
+        type:
+          type: string
+          description: URI that identifies the problem type
+        title:
+          type: string
+          description: Short human-readable summary
+        status:
+          type: integer
+          description: HTTP status code
+        detail:
+          type: string
+          description: Human-readable explanation
+        instance:
+          type: string
+          description: URI that identifies the specific occurrence
     StorySummary:
       type: object
       required:
@@ -428,36 +446,9 @@ components:
           - 'null'
           description: ID of the event this story was generated from. An event that has since been merged or removed still answers `GET /events/{id}` with a tombstone rather than a 404.
           example: 8fzq2rmtnk5c
-    problem_details:
-      type: object
-      required:
-      - type
-      - title
-      - status
-      - detail
-      - instance
-      properties:
-        type:
-          type: string
-          description: URI that identifies the problem type
-        title:
-          type: string
-          description: Short human-readable summary
-        status:
-          type: integer
-          description: HTTP status code
-        detail:
-          type: string
-          description: Human-readable explanation
-        instance:
-          type: string
-          description: URI that identifies the specific occurrence
   securitySchemes:
     bearer_auth:
       type: http
       scheme: bearer
       bearerFormat: API Key
       description: API Key authentication using Bearer token
-x-refined-from:
-- nordic-financial-news-openapi-original.yml
-- nordic-financial-news-openapi.yml

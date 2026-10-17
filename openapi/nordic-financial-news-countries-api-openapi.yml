@@ -2,10 +2,10 @@ openapi: 3.2.0
 info:
   title: Nordic Financial News Countries API
   version: v1.0
+  description: REST API for Nordic financial news.
   contact:
     name: API Support
     email: hello@nordicfinancialnews.com
-  description: 'Operations tagged Countries across 2 of this provider''s published API definitions: nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://nordicfinancialnews.com
   description: Production server
@@ -90,9 +90,6 @@ paths:
           description: Not Modified
       operationId: getApiV1Countries
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
   /api/v1/countries/{identifier}:
     parameters:
     - name: identifier
@@ -163,30 +160,8 @@ paths:
                 $ref: '#/components/schemas/problem_details'
       operationId: getApiV1CountriesByIdentifier
       x-operation-id-source: derived
-    servers:
-    - url: https://nordicfinancialnews.com
-      description: Production server
 components:
   schemas:
-    CountrySummary:
-      type: object
-      required:
-      - id
-      - name
-      - iso2_code
-      properties:
-        id:
-          type: string
-          description: Unique country identifier
-          example: ctry_sweden12
-        name:
-          type: string
-          description: Country display name
-          example: Sweden
-        iso2_code:
-          type: string
-          description: ISO 3166-1 alpha-2 country code
-          example: SE
     problem_details:
       type: object
       required:
@@ -211,12 +186,28 @@ components:
         instance:
           type: string
           description: URI that identifies the specific occurrence
+    CountrySummary:
+      type: object
+      required:
+      - id
+      - name
+      - iso2_code
+      properties:
+        id:
+          type: string
+          description: Unique country identifier
+          example: ctry_sweden12
+        name:
+          type: string
+          description: Country display name
+          example: Sweden
+        iso2_code:
+          type: string
+          description: ISO 3166-1 alpha-2 country code
+          example: SE
   securitySchemes:
     bearer_auth:
       type: http
       scheme: bearer
       bearerFormat: API Key
       description: API Key authentication using Bearer token
-x-refined-from:
-- nordic-financial-news-openapi-original.yml
-- nordic-financial-news-openapi.yml

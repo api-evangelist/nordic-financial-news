@@ -1,8 +1,7 @@
 {
   "provider": "nordic-financial-news",
   "sources": [
-    "_original/nordic-financial-news-openapi-original.yml",
-    "nordic-financial-news-openapi.yml"
+    "_original/nordic-financial-news-openapi-original.yml"
   ],
   "outputs": [
     "nordic-financial-news-articles-api-openapi.yml",
@@ -21,12 +20,11 @@
     "nordic-financial-news-stories-api-openapi.yml",
     "nordic-financial-news-watchlists-api-openapi.yml"
   ],
-  "archived": [
-    "archived openapi/nordic-financial-news-openapi.yml"
-  ],
+  "archived": [],
   "errors": [],
   "warnings": [],
   "notes": [
+    "1 archived document(s) dropped as subsets of other archived documents",
     "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
     "nordic-financial-news-openapi-original.yml: upgraded openapi 3.0.1 -> OpenAPI 3.2.0",
     "nordic-financial-news-openapi-original.yml: declared missing tag: Articles",
@@ -44,38 +42,24 @@
     "nordic-financial-news-openapi-original.yml: declared missing tag: Sources",
     "nordic-financial-news-openapi-original.yml: declared missing tag: Stories",
     "nordic-financial-news-openapi-original.yml: declared missing tag: Watchlists",
-    "nordic-financial-news-openapi.yml: upgraded openapi 3.0.1 -> OpenAPI 3.2.0",
-    "nordic-financial-news-openapi.yml: declared missing tag: Articles",
-    "nordic-financial-news-openapi.yml: declared missing tag: Calendar Events",
-    "nordic-financial-news-openapi.yml: declared missing tag: Categories",
-    "nordic-financial-news-openapi.yml: declared missing tag: Companies",
-    "nordic-financial-news-openapi.yml: declared missing tag: Countries",
-    "nordic-financial-news-openapi.yml: declared missing tag: Event Types",
-    "nordic-financial-news-openapi.yml: declared missing tag: Events",
-    "nordic-financial-news-openapi.yml: declared missing tag: Exchanges",
-    "nordic-financial-news-openapi.yml: declared missing tag: Health",
-    "nordic-financial-news-openapi.yml: declared missing tag: Indices",
-    "nordic-financial-news-openapi.yml: declared missing tag: Meta",
-    "nordic-financial-news-openapi.yml: declared missing tag: Search",
-    "nordic-financial-news-openapi.yml: declared missing tag: Sources",
-    "nordic-financial-news-openapi.yml: declared missing tag: Stories",
-    "nordic-financial-news-openapi.yml: declared missing tag: Watchlists",
-    "tag 'Articles' spans 2 source specs (nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml): per-path servers applied",
-    "tag 'Calendar Events' spans 2 source specs (nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml): per-path servers applied",
-    "tag 'Categories' spans 2 source specs (nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml): per-path servers applied",
-    "tag 'Companies' spans 2 source specs (nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml): per-path servers applied",
-    "tag 'Countries' spans 2 source specs (nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml): per-path servers applied",
-    "tag 'Event Types' spans 2 source specs (nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml): per-path servers applied",
-    "tag 'Events' spans 2 source specs (nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml): per-path servers applied",
-    "tag 'Exchanges' spans 2 source specs (nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml): per-path servers applied",
-    "tag 'Health' spans 2 source specs (nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml): per-path servers applied",
-    "tag 'Indices' spans 2 source specs (nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml): per-path servers applied",
-    "tag 'Meta' spans 2 source specs (nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml): per-path servers applied",
-    "tag 'Search' spans 2 source specs (nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml): per-path servers applied",
-    "tag 'Sources' spans 2 source specs (nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml): per-path servers applied",
-    "tag 'Stories' spans 2 source specs (nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml): per-path servers applied",
-    "tag 'Watchlists' spans 2 source specs (nordic-financial-news-openapi-original.yml, nordic-financial-news-openapi.yml): per-path servers applied",
-    "apis.yml register: written (+15 apis, 16 total)"
+    "apis.yml register: already-registered"
   ],
-  "skipped": []
+  "skipped": [
+    "_original/nordic-financial-news-openapi.yml: archived document superseded by a larger archived document",
+    "nordic-financial-news-articles-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "nordic-financial-news-calendar-events-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "nordic-financial-news-categories-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "nordic-financial-news-companies-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "nordic-financial-news-countries-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "nordic-financial-news-event-types-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "nordic-financial-news-events-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "nordic-financial-news-exchanges-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "nordic-financial-news-health-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "nordic-financial-news-indices-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "nordic-financial-news-meta-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "nordic-financial-news-search-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "nordic-financial-news-sources-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "nordic-financial-news-stories-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "nordic-financial-news-watchlists-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
 }
