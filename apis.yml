@@ -254,6 +254,8 @@ apis:
   humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
   baseURL: https://nordicfinancialnews.com/api/v1
   tags:
+  - Event
+  tags_raw:
   - Events
   properties:
   - type: OpenAPI
@@ -276,6 +278,8 @@ apis:
   humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
   baseURL: https://nordicfinancialnews.com/api/v1
   tags:
+  - Exchange
+  tags_raw:
   - Exchanges
   properties:
   - type: OpenAPI
@@ -430,6 +434,8 @@ apis:
   humanURL: https://docs.nordicfinancialnews.com/api-reference/introduction
   baseURL: https://nordicfinancialnews.com/api/v1
   tags:
+  - Watchlist
+  tags_raw:
   - Watchlists
   properties:
   - type: OpenAPI
