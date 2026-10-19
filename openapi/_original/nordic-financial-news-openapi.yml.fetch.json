@@ -1,0 +1,12 @@
+{
+ "url": "https://nordicfinancialnews.com/openapi/v1/openapi.yaml",
+ "requested_url": "https://nordicfinancialnews.com/openapi/v1/openapi.yaml",
+ "status": 200,
+ "content_type": "text/yaml",
+ "bytes": 251656,
+ "sha256": "341100cec68b7db473a9e37b3f54cdc411635425934dcc2ce0f64ad07ba691ea",
+ "fetched_at": "2026-10-19",
+ "fetched_by": "APIEvangelist-Harvest/1.0 (+https://apievangelist.com)",
+ "match": "equivalent",
+ "note": "Re-fetched from the provider by verify-openapi-sources.py; the provider's current document describes the same operations (Jaccard 1.0), but the bytes differ, so the archive is an earlier or reformatted copy."
+}
