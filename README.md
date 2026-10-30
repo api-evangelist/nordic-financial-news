@@ -130,13 +130,12 @@ Spectral rulesets for the provider's contracts.
 
 - [Nordic Financial News API Rules](https://apis.io/rules/nordic-financial-news/nordic-financial-news-rules/)
 
-#### Security (3)
+#### Security (2)
 
 Authentication, trust centre, and vulnerability disclosure.
 
 - [Nordic Financial News Authentication](https://apis.io/security/nordic-financial-news/nordic-financial-news-authentication/)
 - [Nordic Financial News Domain Security](https://apis.io/security/nordic-financial-news/nordic-financial-news-domain-security/)
-- [Nordic Financial News Vulnerability Disclosure](https://apis.io/security/nordic-financial-news/nordic-financial-news-vulnerability-disclosure/)
 
 #### OAuth scopes (1)
 
@@ -144,24 +143,17 @@ The permissions the API asks for.
 
 - [Nordic Financial News Scopes](https://apis.io/scopes/nordic-financial-news/nordic-financial-news-scopes/)
 
-#### Plans and pricing (2)
+#### Plans and pricing (1)
 
 Published plans, tiers and prices.
 
 - [Nordic Financial News Plans Pricing](https://apis.io/plans/nordic-financial-news/nordic-financial-news-plans-pricing/)
-- [Nordic Financial News Price Estimates](https://apis.io/plans/nordic-financial-news/nordic-financial-news-price-estimates/)
 
 #### Rate limits (1)
 
 Published request limits.
 
 - [Nordic Financial News Rate Limits](https://apis.io/rate-limits/nordic-financial-news/nordic-financial-news-rate-limits/)
-
-#### FinOps (1)
-
-What the API costs to run, by operation.
-
-- [Nordic Financial News Finops](https://apis.io/finops/nordic-financial-news/nordic-financial-news-finops/)
 
 ## Where to find this API
 
